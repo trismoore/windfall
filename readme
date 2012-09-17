@@ -1,1 +1,22 @@
-hello
+Windfall
+
+
+Dependancies:
+
+OpenGL
+GLFW (makes opening opengl contexts easy)
+ [needs to be compiled & installed, uses cmake to find]
+GLEW (The OpenGL Extension Wrangler Library)
+ [needs to be compiled & installed, uses cmake to find]
+GLM (mathematics library)
+ [header-only, just copied into src]
+
+
+Config can be specified on the command line:
+$ ./Windfall windowwidth=1024 windowheight=768 windowfullscreen=0
+
+the following config options are available (with defaults):
+
+windowwidth=1024
+windowheight=768
+windowfullscreen=0

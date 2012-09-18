@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 using namespace glm;
 
+class Config;
+
 class OGL {
 
 public:
@@ -13,11 +15,13 @@ public:
   OGL();
   ~OGL();
 
-  void Init();
-  void Terminate();
+  void init();
+  void terminate();
 
-  void OpenWindow();
-  void CloseWindow();
+  void resize(int w, int h);
+
+  void openWindow(Config* config);
+  void closeWindow();
 };
 
 extern OGL ogl;

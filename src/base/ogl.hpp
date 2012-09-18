@@ -6,6 +6,9 @@
 #include <glm/glm.hpp>
 using namespace glm;
 
+#define logOpenGLErrors() _logOpenGLErrors(__FUNCTION__,__FILE__,__LINE__)
+extern bool _logOpenGLErrors(const char *function, const char *file, const int line);
+
 class Config;
 
 class OGL {

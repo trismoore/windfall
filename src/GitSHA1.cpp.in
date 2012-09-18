@@ -1,0 +1,2 @@
+#define GIT_SHA1 "v@GIT_REV@ [@GIT_SHA1@]"
+const char* g_versionString = GIT_SHA1;

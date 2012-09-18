@@ -6,9 +6,6 @@ SET(CMAKE_BUILD_TYPE Debug)
 set(PROJECTNAME Windfall)
 
 project (${PROJECTNAME})
-# The version number.
-set (VERSION_MAJOR 0)
-set (VERSION_MINOR 1)
 
 # we use our own find modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -26,8 +23,19 @@ file(COPY "${PROJECT_SOURCE_DIR}/data" DESTINATION "${PROJECT_BINARY_DIR}/")
 
 #######################################
 
-#set(CMAKE_LIBRARY_PATH "${PROJECT_BINARY_DIR}/lib")
-
+# add git version info into CMake files, and from there the application
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+set(GIT_REV 0)
+execute_process(COMMAND git rev-list HEAD
+                COMMAND wc -l
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+                OUTPUT_VARIABLE GIT_REV )
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
+#list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" GitSHA1.h)
+# get number of commits, to use as 'revision' number
+message("Git version info: v${GIV_REV} = ${GIT_SHA1}")
 #######################################
 # find packages
 find_package(OpenGL REQUIRED)
@@ -65,6 +73,7 @@ ENDIF(NOT WIN32)
 
 set(MODULES
  base
+ test
 # landscape
 # windfall
 )
@@ -86,6 +95,7 @@ endforeach(m)
 
 add_executable(${PROJECTNAME}
   main.cpp
+  ${PROJECT_BINARY_DIR}/GitSHA1.cpp
 )
 
 target_link_libraries(${PROJECTNAME} ${ALL_LIBS})

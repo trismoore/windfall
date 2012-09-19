@@ -1,0 +1,28 @@
+
+html {
+ background: #333;
+ color: #eee;
+}
+
+ul.log li { list-style: none; }
+
+.log {
+ color: #ddd;
+}
+
+.debug {
+ color: #cba;
+}
+
+.warning {
+ color: #ee2;
+}
+
+.error {
+ color: #e11;
+}
+
+.fatal {
+ background: #d00;
+ color: #000;
+}

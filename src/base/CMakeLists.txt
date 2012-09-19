@@ -7,6 +7,7 @@ add_library(base STATIC
   texture.cpp
   vbo.cpp
   camera.cpp
+  awesome.cpp
 )
 
 target_link_libraries(base ${ALL_LIBS})

@@ -1,6 +1,8 @@
 #include "camera.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "console.hpp"
+
 float Camera::aspect = 4.f / 3.f;
 
 Camera::Camera()
@@ -72,4 +74,10 @@ void Camera::update()
   }
 
   VP = ProjectionMatrix * ViewMatrix;
+}
+
+void Camera::resize(const int w, const int h)
+{
+  if (h>0) aspect = float(w) / float(h);
+  console.logf("Camera resize %dx%d (aspect=%.3f)", w,h,aspect);
 }

@@ -51,6 +51,11 @@ include_directories(${GLFW_INCLUDE_PATH})
 set(ALL_LIBS ${ALL_LIBS} ${GLFW_LIBRARY})
 message("GLFW: inc: ${GLFW_INCLUDE_PATH}, lib: ${GLFW_LIBRARY}")
 
+find_package(Awesomium REQUIRED)
+include_directories(${AWESOMIUM_INCLUDE_PATH})
+set(ALL_LIBS ${ALL_LIBS} ${AWESOMIUM_LIBRARY})
+message("Awesomium: inc ${AWESOMIUM_INCLUDE_PATH}, lib: ${AWESOMIUM_LIBRARY}")
+
 add_definitions(
   -DGLEW_STATIC
   -D_CRT_SECURE_NO_WARNINGS

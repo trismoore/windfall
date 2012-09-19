@@ -2,7 +2,10 @@
 #include "config.hpp"
 #include "ogl.hpp"
 extern const char* g_versionString;
+
 #include "testrenderer.hpp"
+#include "awesome.hpp"
+#include "useful.h"
 
 double gTime, gdT;
 
@@ -27,6 +30,10 @@ int main(int argc, char ** argv)
   console.outdent();
 
   TestRenderer testrenderer;
+  Awesome awesome(&config);
+  awesome.loadFile(config.getString("ui.html", "html/ui.html"));
+//  awesome.loadURL("http://www.google.com");
+
   glfwEnable(GLFW_STICKY_KEYS);
   bool running=true;
 
@@ -43,6 +50,7 @@ int main(int argc, char ** argv)
     timeLastFrame = gTime;
 
     testrenderer.render(gdT);
+    awesome.render(gdT);
 
     timeEndFrame = glfwGetTime();
     oneSecondTimer -= gdT;

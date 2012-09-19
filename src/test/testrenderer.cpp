@@ -18,3 +18,8 @@ void TestRenderer::render(double dT)
   glClear(GL_COLOR_BUFFER_BIT);
 
 }
+
+void TestRenderer::resize(int w, int h)
+{
+
+}

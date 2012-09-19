@@ -2,6 +2,7 @@
 #include "console.hpp"
 #include "config.hpp"
 #include "camera.hpp"
+#include "renderer.hpp"
 
 OGL ogl;
 void GLFWCALL GLFWWindowResizeCallback(int w, int h);
@@ -53,6 +54,10 @@ void OGL::openWindow(Config* config)
   glfwSwapInterval(config->getInt("window.waitforvsync",1));
 
   glfwSetWindowSizeCallback(GLFWWindowResizeCallback);
+
+  // wrangle some extensions
+  if (GLEW_OK != glewInit()) throw "GLEW init failed";
+  console.log("GLEW initialized OK");
 }
 
 void OGL::closeWindow()
@@ -65,6 +70,7 @@ void OGL::resize(int w, int h)
 {
   console.debugf("OGL::Window resized to %dx%d", w,h);
   Camera::resize(w,h);
+  Renderer::resizeAll(w,h);
 }
 
 void GLFWCALL GLFWWindowResizeCallback(int w, int h)

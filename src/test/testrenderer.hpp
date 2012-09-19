@@ -11,6 +11,7 @@ public:
   ~TestRenderer();
 
   void render(double deltaTime);
+  void resize(int w, int h);
 };
 
 #endif//TESTRENDERER_HPP

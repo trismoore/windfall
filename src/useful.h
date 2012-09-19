@@ -3,7 +3,8 @@
 
 extern const char* g_versionString;
 
-#define DATA_DIR "@PROJECT_BINARY_DIR@/data/"
+//#define DATA_DIR "@PROJECT_BINARY_DIR@/data/"
+#define DATA_DIR "data/"
 
 #include <string>
 #include <algorithm>

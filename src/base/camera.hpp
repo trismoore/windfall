@@ -34,7 +34,7 @@ public:
 
   void update();
 
-  static void resize(const int w, const int h) { if (h>0) aspect = float(w) / float(h); }
+  static void resize(const int w, const int h);
 };
 
 #endif//CAMERA_H

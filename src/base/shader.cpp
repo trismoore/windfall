@@ -24,7 +24,7 @@ Shader::~Shader()
 void Shader::load(const std::string &file)
 {
   uniform_cache.clear();
-  console.logf("Shader::Load %s", file.c_str());
+  console.logf("Shader::Load <a href='%s/shaders/%s'>%s</a>", DATA_DIR,file.c_str(),file.c_str());
   filename = std::string(DATA_DIR) + "/shaders/" + file;
   console.debugf("Shader::Load loading from filename %s", filename.c_str());
   std::ifstream f(filename.c_str());
@@ -50,7 +50,7 @@ void Shader::load(const std::string &file)
         std::ostringstream oss;
         oss << "#line " << i << '\n' << line << '\n';
         shaders[type] += oss.str();
-	console.debugf("%s %d: %s",type.c_str(), i,line.c_str());
+	console.debugf("<code>%s %d: %s</code>",type.c_str(), i,line.c_str());
       }
     }
   }

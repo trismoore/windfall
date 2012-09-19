@@ -1,7 +1,62 @@
 
+@font-face {
+	font-family: 'Average';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Average'), local('Average-Regular'), url(Average.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'Asap';
+	font-style: italic;
+	font-weight: 700;
+	src: local('Asap Bold Italic'), local('Asap-BoldItalic'), url(AsapBoldItalic.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'Asap';
+	font-style: normal;
+	font-weight: 400;
+	src: local('Asap'), local('Asap-Regular'), url(Asap.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'Asap';
+	font-style: normal;
+	font-weight: 700;
+	src: local('Asap Bold'), local('Asap-Bold'), url(AsapBold.ttf) format('truetype');
+}
+@font-face {
+	font-family: 'Asap';
+	font-style: italic;
+	font-weight: 400;
+	src: local('Asap Italic'), local('Asap-Italic'), url(AsapItalic.ttf) format('truetype');
+}
+
 html {
- background: #333;
  color: #eee;
+}
+
+body {
+	font-family: 'Asap', sans-serif;
+}
+
+p {
+	font-family: 'Average', serif;
+}
+body.Windfall {
+  background: transparent;/* url(back.png) 50% 0 no-repeat;*/
+  margin: 0;
+  overflow: hidden;
+  -webkit-user-select: none;
+}
+body.log {
+  background: #333;
+}
+
+a {
+  color: #ddf;
+}
+
+code {
+  white-space: pre;
 }
 
 ul.log li { list-style: none; }
@@ -16,13 +71,16 @@ ul.log li { list-style: none; }
 
 .warning {
  color: #ee2;
+ font-size: 110%;
 }
 
 .error {
  color: #e11;
+ font-size: 130%;
 }
 
 .fatal {
  background: #d00;
  color: #000;
+ font-size: 200%;
 }

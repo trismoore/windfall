@@ -1,10 +1,59 @@
 <html>
 <head>
- <title>Windfall UI html file</title>
- <link rel="stylesheet" href="css/windfall.css" />
+	<title>Windfall UI html file</title>
+	<link href="styles/kendo.common.min.css" rel="stylesheet" type="text/css" />
+	<link href="styles/kendo.default.min.css" rel="stylesheet" type="text/css" />
+	<link href="css/windfall.css" rel="stylesheet" type="text/css" />
+	<script src="js/jquery.min.js" type="text/javascript"></script>
+	<script src="js/kendo.web.min.js" type="text/javascript"></script>
+	<style>
+	#content {
+		position: absolute;
+		left:0; right:0;
+		top:0; bottom: 0;
+		background: transparent;
+	}
+	#topMenuBar {
+		opacity: 0.9;
+	}
+	</style>
 </head>
-<body>
- <h1>Windfall</h1>
- <p>Hello there, I'm a UI.</p>
+<body class="Windfall">
+<div id="content" class="k-content">
+
+	<ul id="topMenuBar"></ul>
+
+</div>
+
+<script>
+$(document).ready(function() {
+	function onMenuItemSelected(e) {
+		var t = $(e.item).children(".k-link").text();
+		console.log("Top Menu Item Selected: " + t);
+		switch(t) {
+			case "Quit":
+				console.log("Quitting");
+			break;
+			default:
+				console.log("Unknown menu item: " + t);
+			break;
+		}
+	}
+
+	$("#topMenuBar").kendoMenu({
+		dataSource: [
+			{ text: "Test menu",
+				items: [
+					{ text: "test1" },
+					{ text: "test two" }
+				]
+			},
+			{ text: "Quit" }
+		],
+		select: onMenuItemSelected
+	});
+});
+</script>
+
 </body>
 </html>

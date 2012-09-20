@@ -1,0 +1,58 @@
+::-webkit-scrollbar {
+    width: 15px;
+    height: 15px;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button:start:decrement,
+/*::-webkit-scrollbar-button:end:decrement,*/
+::-webkit-scrollbar-button:end:increment {
+  height: 16px;
+  width: 16px;
+  display: block;
+  border: 1px solid #222;
+  background-image: url('ui-icons_222222_256x240.png');
+}
+::-webkit-scrollbar-button:vertical:decrement {
+  /* .ui-icon-triangle-1-n */
+  background-position: -1px -17px;
+}
+::-webkit-scrollbar-button:vertical:increment {
+  background-position: -66px -17px; /*s*/
+}
+::-webkit-scrollbar-button:horizontal:decrement {
+  background-position: -97px -18px; /*w*/
+}
+::-webkit-scrollbar-button:horizontal:increment {
+  background-position: -33px -18px; /*e*/
+}
+
+::-webkit-scrollbar-track
+{
+  background: rgba(0,0,0,0.25);
+  border-left: 1px solid #000;
+  border-top: 1px solid #000;
+}
+
+::-webkit-scrollbar-thumb:vertical,
+::-webkit-scrollbar-thumb:horizontal
+{
+  border: 1px solid #000;
+  background: rgba(0,0,0,0.5);
+  -webkit-border-radius: 3px;
+}
+::-webkit-scrollbar-button:start:decrement:hover,
+::-webkit-scrollbar-button:end:decrement:hover,
+::-webkit-scrollbar-button:end:increment:hover,
+::-webkit-scrollbar-thumb:vertical:hover,
+::-webkit-scrollbar-thumb:horizontal:hover
+{ border-color: #aaa; }
+
+::-webkit-scrollbar-button:start:decrement:active,
+::-webkit-scrollbar-button:end:decrement:active,
+::-webkit-scrollbar-button:end:increment:active,
+::-webkit-scrollbar-thumb:vertical:active,
+::-webkit-scrollbar-thumb:horizontal:active
+{ border-color: #fff; }

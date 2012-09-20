@@ -61,8 +61,8 @@ int main(int argc, char ** argv)
     ++frames;
     if (oneSecondTimer < 0) {
       oneSecondTimer = 1.0;
-      console.debugf("%d frames rendered last second, [last frame dTime=%.3fms (%.1f fps), actual render time=%.3fms (%.1f fps)]",
-		     frames, 1000.f*gdT, 1.f/gdT, 1000.f*(timeEndFrame-gTime), 1.f/(timeEndFrame-gTime));
+//      console.debugf("%d frames rendered last second, [last frame dTime=%.3fms (%.1f fps), actual render time=%.3fms (%.1f fps)]",
+//		     frames, 1000.f*gdT, 1.f/gdT, 1000.f*(timeEndFrame-gTime), 1.f/(timeEndFrame-gTime));
       frames=0;
     }
 

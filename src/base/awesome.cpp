@@ -230,6 +230,13 @@ void Awesome::onKey(int key, int action)
 		| keyboardModShift * Awesomium::WebKeyboardEvent::MOD_SHIFT_KEY
 		| keyboardModControl * Awesomium::WebKeyboardEvent::MOD_CONTROL_KEY;
 	webView->injectKeyboardEvent(e);
+
+	// GLFW doesn't generate onChar events for non-printable characters, 
+	// but that means that awesomium never gets some that it needs (to pass into text boxes etc)
+	if (GLFW_KEY_ENTER == key && GLFW_RELEASE == action) onChar(13, GLFW_PRESS);
+
+//console.logf("A::onK(%d,%d) (GLFW_ENTER:%d, Awesome::Return:%d sent %d,%d,%d", key, action, GLFW_KEY_ENTER, Awesomium::KeyCodes::AK_RETURN, e.type,e.virtualKeyCode,e.modifiers);
+
 }
 
 void Awesome::onChar(int character, int action)
@@ -244,6 +251,7 @@ void Awesome::onChar(int character, int action)
 			| keyboardModControl * Awesomium::WebKeyboardEvent::MOD_CONTROL_KEY;
 		webView->injectKeyboardEvent(e);
 	}
+//console.logf("A::onC(%d,%d)", character, action);
 }
 
 void Awesome::onMouseButton(int button, int action)
@@ -444,8 +452,8 @@ void Awesome::onJavascriptConsoleMessage(Awesomium::WebView* caller,
                                              const std::wstring& source)
 {
   //std::wcout << "[WebViewListener::onJavascriptConsoleMessage]\n\tMESSAGE: " << message << L"\n\tLINE: " << lineNumber << L"\n\tSOURCE: " << source << std::endl;
-  std::wcout << L"[" << source << L":" << lineNumber << L"] " << message << std::endl;
-//  console.logf("[%ls:%d] %ls", source.c_str(),lineNumber, message.c_str());
+//  std::wcout << L"[" << source << L":" << lineNumber << L"] " << message << std::endl;
+  console.logf("[%ls:%d] %ls", source.c_str(),lineNumber, message.c_str());
 }
 
 void Awesome::onGetFindResults(Awesomium::WebView* caller,

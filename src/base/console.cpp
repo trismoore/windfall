@@ -50,6 +50,7 @@ Console& Console::indent()
   if (indentNumber<100) indentNumber++;
   indentString[indentNumber]='\0';
   logFile << "<li><ul>\n";
+  if (useBackBuffer) backBuffer.push_back("<li><ul>");
   return *this;
 }
 
@@ -58,6 +59,7 @@ Console& Console::outdent()
   if (indentNumber>0) indentNumber--;
   indentString[indentNumber]='\0';
   logFile << "</ul></li>\n";
+  if (useBackBuffer) backBuffer.push_back("</li></ul>");
   return *this;
 }
 
@@ -95,7 +97,8 @@ Console& Console::write(const int log_level, const std::string& log_class, const
   logFile << msg << "\n";
   if (useBackBuffer) backBuffer.push_back(msg);
   if (passLineToJS) {
-	  std::string l = "$('#consoleWindow ul.log').append(\"" + msg + "\"); \
+	std::string l = "addToConsole(\"" + msg + "\");";
+//	  std::string l = "$('#consoleWindow ul.log').append(\"" + msg + "\"); \
 	    $(consoleWindow).animate({scrollTop: consoleWindow.scrollHeight}, 500);";
 	  awesome->runJS(l);
   }
@@ -104,15 +107,16 @@ Console& Console::write(const int log_level, const std::string& log_class, const
 
 void Console::popBackBuffer(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
 {
-	std::string JSONlines = "[";
+	std::string JSONlines = "$('#consoleWindow ul.log').append(\"";
 	for (std::vector<std::string>::iterator it = backBuffer.begin(); it != backBuffer.end(); ++it) {
 /*		std::string l = "addLineToConsole(\""+*it+"\");";
 		caller->executeJavascript(l);
 		log(l);*/
-		std::string l="\"" + *it + "\",";
+		//std::string l="\"" + *it + "\",";
+		std::string l = *it;
 		JSONlines += l;
 	}
-	JSONlines += "\"\"].forEach(function(l){if(l)$('#consoleWindow ul.log').append('<li>'+l+'</li>');});";
+	JSONlines += "\");";
 	caller->executeJavascript(JSONlines);
 	// now that we're loaded, we can now just add lines in the write method
 	passLineToJS = true;

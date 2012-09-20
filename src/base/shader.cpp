@@ -24,7 +24,7 @@ Shader::~Shader()
 void Shader::load(const std::string &file)
 {
   uniform_cache.clear();
-  console.logf("Shader::Load <a href='%s/shaders/%s'>%s</a>", DATA_DIR,file.c_str(),file.c_str());
+  console.logf("Shader::Load <a href='../shaders/%s'>%s</a>", file.c_str(),file.c_str());
   filename = std::string(DATA_DIR) + "/shaders/" + file;
   console.debugf("Shader::Load loading from filename %s", filename.c_str());
   std::ifstream f(filename.c_str());

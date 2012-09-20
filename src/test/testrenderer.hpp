@@ -2,9 +2,12 @@
 #define TESTRENDERER_HPP
 
 #include "renderer.hpp"
+#include "vbo.hpp"
+#include "shader.hpp"
 
 class TestRenderer : public Renderer {
-
+	VBO *vbo;
+	Shader *shader;
 public:
 
   TestRenderer();

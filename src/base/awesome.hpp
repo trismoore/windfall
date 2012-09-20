@@ -5,7 +5,6 @@
 #include <Awesomium/JSDelegate.h>
 
 #include "config.hpp"
-#include "console.hpp"
 #include "renderer.hpp"
 #include "ogl.hpp"
 
@@ -34,8 +33,13 @@ public:
   static Awesomium::WebView* webView;
   static Awesomium::WebCore* webCore;
 
-  void render(double dT);
-  void resize(int w,int h);
+  void render();
+  void onResize(int w,int h);
+  void onKey(int key, int action);
+  void onChar(int character, int action);
+  void onMouseButton(int button, int action);
+  void onMouseMove(int x, int y);
+  void onMouseWheel(int pos);
 
   void loadFile(std::string file);
   void loadURL(std::string url);

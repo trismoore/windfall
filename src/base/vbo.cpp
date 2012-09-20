@@ -24,6 +24,7 @@ VBO::VBO()
       VertexAttribArrayWanted[i]=false;
     }
     console.logf("No AttribArray yet, created one %d big", numVertexAttribs);
+    logOpenGLErrors();
   }
 }
 
@@ -119,7 +120,7 @@ void VBO::create()
   glGenBuffers(1,&buffer);
   glBindBuffer(GL_ARRAY_BUFFER, buffer);
   glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
-  console.debugf("Creating GL_ARRAY_BUFFER from %d pointers and data length %lu floats -> %d", pointers.size(), data.size(), buffer);
+  console.debugf("Creating GL_ARRAY_BUFFER from %d pointers and data length %lu floats -> VAO %d, buffer %d", pointers.size(), data.size(), VAO, buffer);
   logOpenGLErrors();
 
   if (indices.size() > 0) {

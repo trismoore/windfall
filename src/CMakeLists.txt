@@ -35,7 +35,7 @@ execute_process(COMMAND git rev-list HEAD
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/GitSHA1.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" @ONLY)
 #list(APPEND SOURCES "${CMAKE_CURRENT_BINARY_DIR}/GitSHA1.cpp" GitSHA1.h)
 # get number of commits, to use as 'revision' number
-message("Git version info: v${GIV_REV} = ${GIT_SHA1}")
+message("-> Git version info: v${GIV_REV} = ${GIT_SHA1}")
 #######################################
 # find packages
 find_package(OpenGL REQUIRED)
@@ -44,17 +44,17 @@ set(ALL_LIBS ${ALL_LIBS} ${OPENGL_LIBRARY})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIR})
 set(ALL_LIBS ${ALL_LIBS} ${GLEW_GLEW_LIBRARY})
-message("GLEW: inc: ${GLEW_INCLUDE_DIR}, lib: ${GLEW_GLEW_LIBRARY}")
+message("-> GLEW: inc: ${GLEW_INCLUDE_DIR}, lib: ${GLEW_GLEW_LIBRARY}")
 
 find_package(GLFW REQUIRED)
 include_directories(${GLFW_INCLUDE_PATH})
 set(ALL_LIBS ${ALL_LIBS} ${GLFW_LIBRARY})
-message("GLFW: inc: ${GLFW_INCLUDE_PATH}, lib: ${GLFW_LIBRARY}")
+message("-> GLFW: inc: ${GLFW_INCLUDE_PATH}, lib: ${GLFW_LIBRARY}")
 
 find_package(Awesomium REQUIRED)
 include_directories(${AWESOMIUM_INCLUDE_PATH})
 set(ALL_LIBS ${ALL_LIBS} ${AWESOMIUM_LIBRARY})
-message("Awesomium: inc ${AWESOMIUM_INCLUDE_PATH}, lib: ${AWESOMIUM_LIBRARY}")
+message("-> Awesomium: inc ${AWESOMIUM_INCLUDE_PATH}, lib: ${AWESOMIUM_LIBRARY}")
 
 add_definitions(
   -DGLEW_STATIC

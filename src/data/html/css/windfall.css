@@ -36,6 +36,7 @@ html {
 
 body {
 	font-family: 'Asap', sans-serif;
+	font-size: 95%;
 }
 
 p {
@@ -61,25 +62,25 @@ code {
 
 ul.log li { list-style: none; }
 
-.log {
+li.log {
  color: #ddd;
 }
 
-.debug {
+li.debug {
  color: #cba;
 }
 
-.warning {
+li.warning {
  color: #ee2;
  font-size: 110%;
 }
 
-.error {
+li.error {
  color: #e11;
  font-size: 130%;
 }
 
-.fatal {
+li.fatal {
  background: #d00;
  color: #000;
  font-size: 200%;

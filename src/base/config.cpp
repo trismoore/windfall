@@ -61,7 +61,7 @@ int Config::getInt(std::string n)
 std::string Config::getString(std::string k, std::string def)
 {
   if (m_map.find(k) == m_map.end()) {
-    console.debugf("Config::getString returning default (%s) for key '%s'", def.c_str(), k.c_str());
+    console.logf("Config::getString returning default (%s) for key '%s'", def.c_str(), k.c_str());
     return def;
   }
   else return getString(k);
@@ -70,7 +70,7 @@ std::string Config::getString(std::string k, std::string def)
 float Config::getFloat(std::string k, float def)
 {
   if (m_map.find(k) == m_map.end()) {
-    console.debugf("Config::getFloat returning default (%f) for key '%s'", def, k.c_str());
+    console.logf("Config::getFloat returning default (%f) for key '%s'", def, k.c_str());
     return def;
   }
   else return getFloat(k);
@@ -79,7 +79,7 @@ float Config::getFloat(std::string k, float def)
 int Config::getInt(std::string k, int def)
 {
   if (m_map.find(k) == m_map.end()) {
-    console.debugf("Config::getInt returning default (%d) for key '%s'", def, k.c_str());
+    console.logf("Config::getInt returning default (%d) for key '%s'", def, k.c_str());
     return def;
   }
   else return getInt(k);

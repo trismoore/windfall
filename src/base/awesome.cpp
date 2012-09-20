@@ -4,11 +4,12 @@
 #include "shader.hpp"
 #include "vbo.hpp"
 #include "useful.h"
+#include "console.hpp"
 
 Awesomium::WebView* Awesome::webView;
 Awesomium::WebCore* Awesome::webCore;
 
-void Awesome::render(double dT)
+void Awesome::render()
 {
   webCore->update();
   shader->use();
@@ -31,15 +32,15 @@ void Awesome::render(double dT)
 Awesome::Awesome(Config* config)
 {
   console.log("Awesome starting!").indent();
+  logOpenGLErrors();
 
   windowwidth = config->getInt("window.width",1024);
   windowheight = config->getInt("window.height",768);
 
   Awesomium::WebCoreConfig conf;
-  conf.setEnablePlugins(true);
+  conf.setEnablePlugins(config->getInt("ui.enableplugins",0));
   conf.setSaveCacheAndCookies(false);
   conf.setLogLevel(Awesomium::LOG_VERBOSE);
-  conf.setCustomCSSFromFile("data/html/css/custom.css");
 
   console.log("Starting Awesome Core");
   webCore = new Awesomium::WebCore(conf);
@@ -76,6 +77,7 @@ Awesome::Awesome(Config* config)
 
   console.outdent();
 
+  logOpenGLErrors();
   console.log("Finished Awesome Startup").outdent();
 }
 
@@ -87,15 +89,6 @@ Awesome::~Awesome()
   glDeleteTextures(1, &texture);
   delete shader;
   delete vbo;
-}
-
-void Awesome::resize(int w, int h)
-{
-  windowwidth = w;
-  windowheight = h;
-  webView->resize(w,h);
-  glViewport(0,0,w,h);
-  console.logf("Awesome::resize %dx%d", w,h);
 }
 
 void Awesome::loadFile(std::string file)
@@ -131,6 +124,158 @@ void Awesome::reload()
   }
 }
 
+void Awesome::onResize(int w,int h)
+{
+	windowwidth = w;
+	windowheight = h;
+	webView->resize(w,h);
+	glViewport(0,0,w,h);
+	console.logf("Awesome::resize %dx%d", w,h);
+}
+
+int getAwesomiumKeyCodeFromGLFWKeyCode(int k) {
+	if (k>='0' && k<='Z') return k;
+		switch (k) {
+#define mapKey(a, b) case GLFW_KEY_##a: return Awesomium::KeyCodes::AK_##b;
+			// grep "GLFW_KEY" glfw.h
+			// grep "int AK_" KeyboardCodes.h
+			mapKey(ESC, ESCAPE);
+			mapKey(F1, F1);
+			mapKey(F2, F2);
+			mapKey(F3, F3);
+			mapKey(F4, F4);
+			mapKey(F5, F5);
+			mapKey(F6, F6);
+			mapKey(F7, F7);
+			mapKey(F8, F8);
+			mapKey(F9, F9);
+			mapKey(F10, F10);
+			mapKey(F11, F11);
+			mapKey(F12, F12);
+			mapKey(F13, F13);
+			mapKey(F14, F14);
+			mapKey(F15, F15);
+			mapKey(F16, F16);
+			mapKey(F17, F17);
+			mapKey(F18, F18);
+			mapKey(F19, F19);
+			mapKey(F20, F20);
+			mapKey(F21, F21);
+			mapKey(F22, F22);
+			mapKey(F23, F23);
+			mapKey(F24, F24);
+			mapKey(UP           , UP);
+			mapKey(DOWN         , DOWN);
+			mapKey(LEFT         , LEFT);
+			mapKey(RIGHT        , RIGHT);
+			mapKey(LSHIFT       , LSHIFT);
+			mapKey(RSHIFT       , RSHIFT);
+			mapKey(LCTRL        , LCONTROL);
+			mapKey(RCTRL        , RCONTROL);
+			mapKey(LALT         , LMENU);    //?
+			mapKey(RALT         , RMENU);    //?
+			mapKey(TAB          , TAB);
+			mapKey(ENTER        , RETURN);  //?
+			mapKey(BACKSPACE    , BACK);
+			mapKey(INSERT       , INSERT);
+			mapKey(DEL          , DELETE);
+			mapKey(PAGEUP       , PRIOR);
+			mapKey(PAGEDOWN     , NEXT);
+			mapKey(HOME         , HOME);
+			mapKey(END          , END);
+			mapKey(KP_0         , NUMPAD0);
+			mapKey(KP_1         , NUMPAD1);
+			mapKey(KP_2         , NUMPAD2);
+			mapKey(KP_3         , NUMPAD3);
+			mapKey(KP_4         , NUMPAD4);
+			mapKey(KP_5         , NUMPAD5);
+			mapKey(KP_6         , NUMPAD6);
+			mapKey(KP_7         , NUMPAD7);
+			mapKey(KP_8         , NUMPAD8);
+			mapKey(KP_9         , NUMPAD9);
+			mapKey(KP_DIVIDE    , DIVIDE);
+			mapKey(KP_MULTIPLY  , MULTIPLY);
+			mapKey(KP_SUBTRACT  , SUBTRACT);
+			mapKey(KP_ADD       , ADD);
+			mapKey(KP_DECIMAL   , DECIMAL);
+			//    mapKey(KP_EQUAL     , );           //?
+			mapKey(KP_ENTER     , RETURN);   //?????
+			mapKey(KP_NUM_LOCK  , NUMLOCK);
+			mapKey(CAPS_LOCK    , CAPITAL);
+			mapKey(SCROLL_LOCK  , SCROLL);
+			mapKey(PAUSE        , PAUSE);
+			mapKey(LSUPER       , LWIN);
+			mapKey(RSUPER       , RWIN);
+			mapKey(MENU         , APPS); //?
+			#undef mapKey
+			default: return 0;
+		}
+}
+bool keyboardModShift = 0,
+	keyboardModControl = 0,
+	keyboardModAlt = 0;
+
+void Awesome::onKey(int key, int action)
+{
+	if (key == GLFW_KEY_LSHIFT || key == GLFW_KEY_RSHIFT) keyboardModShift = action == GLFW_PRESS;
+	if (key == GLFW_KEY_LCTRL  || key == GLFW_KEY_RCTRL ) keyboardModControl = action == GLFW_PRESS;
+	if (key == GLFW_KEY_LALT   || key == GLFW_KEY_RALT  ) keyboardModAlt = action == GLFW_PRESS;
+
+	Awesomium::WebKeyboardEvent e;
+	e.type = (action == GLFW_PRESS
+		? Awesomium::WebKeyboardEvent::TYPE_KEY_DOWN
+		: Awesomium::WebKeyboardEvent::TYPE_KEY_UP);
+	e.virtualKeyCode = getAwesomiumKeyCodeFromGLFWKeyCode(key);
+	e.modifiers = keyboardModAlt * Awesomium::WebKeyboardEvent::MOD_ALT_KEY
+		| keyboardModShift * Awesomium::WebKeyboardEvent::MOD_SHIFT_KEY
+		| keyboardModControl * Awesomium::WebKeyboardEvent::MOD_CONTROL_KEY;
+	webView->injectKeyboardEvent(e);
+}
+
+void Awesome::onChar(int character, int action)
+{
+	if (action==GLFW_PRESS) {
+		Awesomium::WebKeyboardEvent e;
+		e.type = Awesomium::WebKeyboardEvent::TYPE_CHAR;
+		e.virtualKeyCode = character;
+		e.text[0] = character; e.text[1]=0;
+		e.modifiers = keyboardModAlt * Awesomium::WebKeyboardEvent::MOD_ALT_KEY
+			| keyboardModShift * Awesomium::WebKeyboardEvent::MOD_SHIFT_KEY
+			| keyboardModControl * Awesomium::WebKeyboardEvent::MOD_CONTROL_KEY;
+		webView->injectKeyboardEvent(e);
+	}
+}
+
+void Awesome::onMouseButton(int button, int action)
+{
+	Awesomium::MouseButton b;
+	switch(button)
+	{
+		case GLFW_MOUSE_BUTTON_LEFT: b=Awesomium::LEFT_MOUSE_BTN; break;
+		case GLFW_MOUSE_BUTTON_RIGHT: b=Awesomium::RIGHT_MOUSE_BTN; break;
+		case GLFW_MOUSE_BUTTON_MIDDLE: b=Awesomium::MIDDLE_MOUSE_BTN; break;
+		default: return;
+	}
+
+	if (action == GLFW_PRESS)
+		webView->injectMouseDown(b);
+	else
+		webView->injectMouseUp(b);
+}
+
+void Awesome::onMouseMove(int x, int y)
+{
+	webView->injectMouseMove(x,y);
+}
+
+void Awesome::onMouseWheel(int pos)
+{
+	static int wheel = 0;
+
+	webView->injectMouseWheel((pos-wheel) * 50);
+	wheel = pos;
+}
+
 void Awesome::registerCallbackFunction(std::wstring object,
                                        std::wstring function,
                                        Awesomium::JSDelegate delegate)
@@ -145,7 +290,8 @@ void Awesome::registerCallbackFunction(std::wstring object,
 
 void Awesome::runJS(std::string js)
 {
-  console.logf("AwesomeJS> %s", js.c_str());
+// DON'T DO THIS (recursive)  console.logf("AwesomeJS> %s", js.c_str());
+//printf("AwesomeJS> %s", js.c_str());
   webView->executeJavascript(js);
 }
 
@@ -298,8 +444,8 @@ void Awesome::onJavascriptConsoleMessage(Awesomium::WebView* caller,
                                              const std::wstring& source)
 {
   //std::wcout << "[WebViewListener::onJavascriptConsoleMessage]\n\tMESSAGE: " << message << L"\n\tLINE: " << lineNumber << L"\n\tSOURCE: " << source << std::endl;
-  //std::wcout << L"[" << source << L":" << lineNumber << L"] " << message << std::endl;
-  console.logf("[%ls:%d] %ls", source.c_str(),lineNumber, message.c_str());
+  std::wcout << L"[" << source << L":" << lineNumber << L"] " << message << std::endl;
+//  console.logf("[%ls:%d] %ls", source.c_str(),lineNumber, message.c_str());
 }
 
 void Awesome::onGetFindResults(Awesomium::WebView* caller,

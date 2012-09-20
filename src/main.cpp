@@ -30,12 +30,16 @@ int main(int argc, char ** argv)
   console.outdent();
 
   TestRenderer testrenderer;
+
   Awesome awesome(&config);
+  awesome.registerCallbackFunction( L"UI", L"Quit", Awesomium::JSDelegate(&ogl,&OGL::Quit));
   awesome.loadFile(config.getString("ui.html", "html/ui.html"));
 //  awesome.loadURL("http://www.google.com");
 
-  glfwEnable(GLFW_STICKY_KEYS);
-  bool running=true;
+	console.setupCallback(&awesome);
+
+//  glfwEnable(GLFW_STICKY_KEYS);
+//  bool running=true;
 
   gTime = glfwGetTime();
   double timeLastFrame = gTime;
@@ -44,13 +48,13 @@ int main(int argc, char ** argv)
   double oneSecondTimer = 1.0;
   gdT = 0;
 
-  while (running) {
+  while (OGL::isRunning()) {
     gTime = glfwGetTime();
     gdT = gTime - timeLastFrame;
     timeLastFrame = gTime;
 
-    testrenderer.render(gdT);
-    awesome.render(gdT);
+    testrenderer.render();
+    awesome.render();
 
     timeEndFrame = glfwGetTime();
     oneSecondTimer -= gdT;
@@ -63,9 +67,6 @@ int main(int argc, char ** argv)
     }
 
     glfwSwapBuffers();
-
-    if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS) { console.log("ESC pressed, quit"); running=false; }
-    if (glfwGetWindowParam(GLFW_OPENED) == GL_FALSE) { console.log("Window closed, quit"); running=false; }
   }
 
   console.log("Shutting down OpenGL").indent();

@@ -79,5 +79,5 @@ void Camera::update()
 void Camera::resize(const int w, const int h)
 {
   if (h>0) aspect = float(w) / float(h);
-  console.logf("Camera resize %dx%d (aspect=%.3f)", w,h,aspect);
+  console.debugf("Camera resize %dx%d (aspect=%.3f)", w,h,aspect);
 }

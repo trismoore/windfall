@@ -27,11 +27,13 @@ FIND_PATH(AWESOMIUM_INCLUDE_PATH WebCore.h DOC "Path to AWESOMIUM include direct
   $ENV{AWESOMIUM_ROOT}
   PATH_SUFFIX include #For finding the include file under the root of the AWESOMIUM expanded archive, typically on Windows.
   PATHS
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  ${CMAKE_CURRENT_SOURCE_DIR}/Awesomium/
+  ${CMAKE_CURRENT_SOURCE_DIR}/base/Awesomium/ # this is where I keep it - tris
   /usr/include/
   /usr/local/include/
   ${AWESOMIUM_ROOT_DIR}/include/
   ${AWESOMIUM_ROOT_DIR}/Awesomium/
-  ${CMAKE_CURRENT_SOURCE_DIR}/Awesomium/
 )
 
 FIND_LIBRARY(AWESOMIUM_LIBRARY DOC "Absolute path to AWESOMIUM library."
@@ -40,14 +42,14 @@ FIND_LIBRARY(AWESOMIUM_LIBRARY DOC "Absolute path to AWESOMIUM library."
   $ENV{AWESOMIUM_ROOT}
   PATH_SUFFIXES lib/win32 #For finding the library file under the root of the AWESOMIUM expanded archive, typically on Windows.
   PATHS
-  /usr/local/lib
-  /usr/lib
   ${CMAKE_CURRENT_SOURCE_DIR}/Awesomium/
   ${CMAKE_CURRENT_SOURCE_DIR}/lib/
+  /usr/local/lib
+  /usr/lib
   ${AWESOMIUM_ROOT_DIR}/Awesomium/
   ${AWESOMIUM_ROOT_DIR}/lib/
   ${AWESOMIUM_ROOT_DIR}/lib-msvc100/release # added by ptr
 )
 
 INCLUDE(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(AWESOMIUM DEFAULT_MSG AWESOMIUM_LIBRARY AWESOMIUM_INCLUDE_PATH)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(Awesomium DEFAULT_MSG AWESOMIUM_LIBRARY AWESOMIUM_INCLUDE_PATH)

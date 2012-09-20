@@ -21,11 +21,56 @@ Renderer::~Renderer()
   }
 }
 
-void Renderer::resizeAll(int w, int h)
+void Renderer::onResizeAll(int w, int h)
 {
-  Renderer *p = linkedListHead;
-  while (p) {
-    p->resize(w,h);
-    p=p->linkedListNext;
-  }
+	Renderer *p = linkedListHead;
+	while (p) {
+		p->onResize(w,h);
+		p=p->linkedListNext;
+	}
+}
+
+void Renderer::onKeyAll(int key, int action)
+{
+	Renderer *p = linkedListHead;
+	while (p) {
+		p->onKey(key, action);
+		p=p->linkedListNext;
+	}
+}
+
+void Renderer::onCharAll(int character, int action)
+{
+	Renderer *p = linkedListHead;
+	while (p) {
+		p->onChar(character, action);
+		p=p->linkedListNext;
+	}
+}
+
+void Renderer::onMouseButtonAll(int button, int action)
+{
+	Renderer *p = linkedListHead;
+	while (p) {
+		p->onMouseButton(button, action);
+		p=p->linkedListNext;
+	}
+}
+
+void Renderer::onMouseMoveAll(int x, int y)
+{
+	Renderer *p = linkedListHead;
+	while (p) {
+		p->onMouseMove(x,y);
+		p=p->linkedListNext;
+	}
+}
+
+void Renderer::onMouseWheelAll(int pos)
+{
+	Renderer *p = linkedListHead;
+	while (p) {
+		p->onMouseWheel(pos);
+		p=p->linkedListNext;
+	}
 }

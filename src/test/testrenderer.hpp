@@ -10,8 +10,7 @@ public:
   TestRenderer();
   ~TestRenderer();
 
-  void render(double deltaTime);
-  void resize(int w, int h);
+  void render();
 };
 
 #endif//TESTRENDERER_HPP

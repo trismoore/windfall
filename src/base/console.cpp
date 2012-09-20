@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <assert.h>
 
+#include "awesome.hpp"
 Console console;
 
 Console::Console(char indentChar) : indentChar(indentChar)
@@ -13,10 +14,12 @@ Console::Console(char indentChar) : indentChar(indentChar)
   indentString[0]='\0';
 
   useBackBuffer = true;
+  passLineToJS = false;
+
   logFile.open(LOG_FILENAME);
   logFile << "<html><head><title>Windfall log</title></head>\n"
            << "<link rel='stylesheet' href='data/html/css/windfall.css'>\n"
-           << "<body>\n"
+           << "<body class='log'>\n"
            << "<h1>Windfall log</h1>\n"
 	   << "<ul class='log'>\n";
 
@@ -88,8 +91,37 @@ Console& Console::write(const int log_level, const std::string& log_class, const
   assert(log_level <= 4);
   static char consoleChars[] = "#>!EF";
   std::cout << consoleChars[log_level] << " " << indentString << string << "\n";
-  std::string msg = "<li class='" + log_class + "'>" + string + "</li>\n";
-  logFile << msg;
+  std::string msg = "<li class='" + log_class + "'>" + string + "</li>";
+  logFile << msg << "\n";
   if (useBackBuffer) backBuffer.push_back(msg);
+  if (passLineToJS) {
+	  std::string l = "$('#consoleWindow ul.log').append(\"" + msg + "\"); \
+	    $(consoleWindow).animate({scrollTop: consoleWindow.scrollHeight}, 500);";
+	  awesome->runJS(l);
+  }
   return *this;
+}
+
+void Console::popBackBuffer(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
+{
+	std::string JSONlines = "[";
+	for (std::vector<std::string>::iterator it = backBuffer.begin(); it != backBuffer.end(); ++it) {
+/*		std::string l = "addLineToConsole(\""+*it+"\");";
+		caller->executeJavascript(l);
+		log(l);*/
+		std::string l="\"" + *it + "\",";
+		JSONlines += l;
+	}
+	JSONlines += "\"\"].forEach(function(l){if(l)$('#consoleWindow ul.log').append('<li>'+l+'</li>');});";
+	caller->executeJavascript(JSONlines);
+	// now that we're loaded, we can now just add lines in the write method
+	passLineToJS = true;
+	// and this line should cause a scroll to the bottom
+	logf("Console loaded, sent %d lines of back buffer", backBuffer.size());
+}
+
+void Console::setupCallback(Awesome* a)
+{
+	awesome = a;
+	awesome->registerCallbackFunction( L"UI", L"popBackBuffer", Awesomium::JSDelegate(this,&Console::popBackBuffer));
 }

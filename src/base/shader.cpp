@@ -40,17 +40,18 @@ void Shader::load(const std::string &file)
   // read it in and pre-process it
   while (std::getline(f,tmp)) {
     ++i;
-    line = trim(tmp);
+    line = tmp;
+    trim(line);
     if (line.size() > 0) {
       if (substr(line,-1).compare(":")==0) {
         type = substr(line,0,-1);
-        console.debugf("Shader %s starting section %s", file.c_str(), type.c_str());
+        console.debugf("Shader <em>%s</em> starting section <em>%s</em>", file.c_str(), type.c_str());
       } else {
         // i hate c++ strings
         std::ostringstream oss;
         oss << "#line " << i << '\n' << line << '\n';
         shaders[type] += oss.str();
-	console.debugf("<code>%s %d: %s</code>",type.c_str(), i,line.c_str());
+	console.debugf("<code>%s %03d: %s</code>",type.c_str(), i, tmp.c_str());
       }
     }
   }
@@ -70,6 +71,7 @@ void Shader::load(const std::string &file)
 
   console.outdent();
   if (!result) printErrors(program);
+  logOpenGLErrors();
 }
 
 void Shader::compile(GLuint shader, const std::string& source)

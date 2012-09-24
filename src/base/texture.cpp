@@ -83,7 +83,14 @@ void Texture::loadDDS(const char* f)
 
   /* verify the type of file */
   char filecode[4];
-  fread(filecode, 1, 4, fp);
+  size_t r;
+  r = fread(filecode, 1, 4, fp);
+  if (4!=r) {
+	console.error("Can't read magic number of file!").outdent();
+	fclose(fp);
+	throw "loadDDS: Can't read first 4 bytes (magic number)";
+  }
+  assert(4==r);
   if (filecode[0]!='D' || filecode[1]!='D' || filecode[2]!='S' || filecode[4]!=' ') {
     fclose(fp);
     console.error("File isn't DDS format!").outdent();
@@ -91,7 +98,6 @@ void Texture::loadDDS(const char* f)
   }
 
   /* get the surface desc */
-  int r=0;
   r = fread(&header, 124, 1, fp);
   if (r!=1) {
     console.error("Can't read header of file!").outdent();

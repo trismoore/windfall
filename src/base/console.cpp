@@ -124,8 +124,31 @@ void Console::popBackBuffer(Awesomium::WebView* caller, const Awesomium::JSArgum
 	logf("Console loaded, sent %d lines of back buffer", backBuffer.size());
 }
 
+void Console::addToLog(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
+{
+	bool passLineToJSTmp = passLineToJS;
+	passLineToJS = false;
+	if (!args[0].isString()) warning("Console::addToLog called with non-string arg, expect useless output");
+	std::string m(args[0].toString().begin(),args[0].toString().end());
+	std::string t(args[1].toString().begin(),args[1].toString().end());
+//printf("addToLog(%s,%s);\n",m.c_str(),t.c_str());
+//	m="[C::aTL]" + m;
+
+	char tchar = t.c_str()[0];
+	switch (tchar) {
+		case 'l': write(0,"debug",m); break;
+		case 'i': write(1,"log",m); break;
+		case 'w': write(2,"warning",m); break;
+		case 'e': write(3,"error",m); break;
+		default: write(0,"debug",std::string("Unknown message class: ")+t); write(0,"debug",m); break;
+	}
+	passLineToJS = passLineToJSTmp;
+}
+
 void Console::setupCallback(Awesome* a)
 {
 	awesome = a;
 	awesome->registerCallbackFunction( L"UI", L"popBackBuffer", Awesomium::JSDelegate(this,&Console::popBackBuffer));
+	awesome->registerCallbackFunction( L"UI", L"addToLog", Awesomium::JSDelegate(this, &Console::addToLog));
 }
+

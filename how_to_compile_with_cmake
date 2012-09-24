@@ -1,0 +1,3 @@
+Debug: cmake -DCMAKE_BUILD_TYPE=Debug <path>
+Release: cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo <path>
+

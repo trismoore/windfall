@@ -31,6 +31,7 @@ public:
 	void quitting() { passLineToJS = false; } // stop sending the lines to awesomium
 	void setupCallback(Awesome* a);
 	void popBackBuffer(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
+	void addToLog(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
 
   Console(char indentCharacter=' ');
   ~Console();

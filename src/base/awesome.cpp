@@ -453,7 +453,7 @@ void Awesome::onJavascriptConsoleMessage(Awesomium::WebView* caller,
 {
   //std::wcout << "[WebViewListener::onJavascriptConsoleMessage]\n\tMESSAGE: " << message << L"\n\tLINE: " << lineNumber << L"\n\tSOURCE: " << source << std::endl;
 //  std::wcout << L"[" << source << L":" << lineNumber << L"] " << message << std::endl;
-  console.logf("[%ls:%d] %ls", source.c_str(),lineNumber, message.c_str());
+//	console.logf("[%ls:%d] %ls", source.c_str(),lineNumber, message.c_str());
 }
 
 void Awesome::onGetFindResults(Awesomium::WebView* caller,

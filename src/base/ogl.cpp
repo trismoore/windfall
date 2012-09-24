@@ -65,7 +65,7 @@ void OGL::openWindow(Config* config)
     throw "Failed to open window";
 
   glfwSetWindowTitle(config->getString("window.title","Windfall").c_str());
-  glfwSwapInterval(config->getInt("window.waitforvsync",1));
+  glfwSwapInterval(config->getInt("window.vsync",1));
 
   glfwSetWindowCloseCallback(&glfwCallbackWindowClose);
   glfwSetWindowSizeCallback(&glfwCallbackResize);

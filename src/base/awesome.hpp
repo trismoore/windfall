@@ -27,6 +27,8 @@ class Awesome : public Renderer, public Awesomium::WebViewListener, public Aweso
   std::map<std::wstring, std::wstring> callbackFunctions;
 
 public:
+  static int updatesLastSecond;
+
   Awesome(Config* config);
   ~Awesome();
 
@@ -47,6 +49,7 @@ public:
   void reload();
 
   void runJS(std::string js);
+  void runJSf(const char *format, ...);
   void callJS(std::string object, std::string func, int arg);
   void callJS(std::string object, std::string func, std::string arg);
   const int getJSInt(std::string js);

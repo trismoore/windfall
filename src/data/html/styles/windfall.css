@@ -39,9 +39,14 @@ body {
 	font-size: 95%;
 }
 
-p {
+p,h1,h2,h3,h4,h5,h6 {
 	font-family: 'Average', serif;
 }
+
+ul.log {
+	font-family: monospace;
+}
+
 body.Windfall {
   background: transparent;/* url(back.png) 50% 0 no-repeat;*/
   margin: 0;
@@ -61,7 +66,8 @@ code {
 }
 
 ul.log li { list-style: none; }
-
+ul.log { padding-left: 0; }
+ul.log ul { padding-left: 1em; }
 li.log {
  color: #ddd;
 }
@@ -85,3 +91,55 @@ li.fatal {
  color: #000;
  font-size: 200%;
 }
+
+pre {
+	margin: 0.2em 0;
+}
+
+#content,#wrapper {
+	position: absolute;
+	left:0; right:0;
+	top:0; bottom: 0;
+	background: transparent;
+	overflow: hidden;
+}
+#topMenuBar {
+	opacity: 0.9;
+	z-index: +22222;
+	height: 33px; /* also change #content, below */
+	position:absolute;left:0;right:0;top:0;
+}
+#content { top: 33px; }
+#consoleWindow ul.log {
+	position: absolute; left:0;right:0;top:0;bottom:2em;
+	margin: .1em .3em .5em .5em;
+	overflow: auto;
+}
+#consoleMessage {
+	position: absolute;
+	left:0; right:0; bottom: 0; height: 2em;
+	background: #666;
+}
+#consoleInputBar {
+	position:absolute; left:0;right:0;bottom:1px;height:2em;
+}
+#consoleInputBar input {
+	position:absolute; left:0.3em;bottom:0.1em;top:0.1em;right:1.5em;height:1.8em; border: 1px solid black;
+}
+
+
+/* syntax highlighting */
+.hl-string { color: #4f4; }
+.hl-number { color: #ff8; }
+.hl-array { color: #880; }
+.hl-boolean { color: #88f; }
+.hl-null { color: #f4f; }
+.hl-key { color: #f44; }
+.hl-undefined { color: #aaa; }
+.hl-circular { color: #f88; }
+.hl-function { color: #8f8; }
+.hl-error { color: #f00; }
+.hl-inheritedObject { color: #edc; }
+.hl-object { color: #cde; }
+
+.k-window { background: rgba(61,61,61,0.6) !important; }

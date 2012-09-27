@@ -30,9 +30,11 @@ TestRenderer::~TestRenderer()
 	delete vbo;
 }
 
+extern double gTime;
+
 void TestRenderer::render()
 {
-  glClearColor(0.2,0.5,0.1,0.9);
+  glClearColor(0.2+0.2*sin(gTime),0.5,0.1,0.9);
   glClear(GL_COLOR_BUFFER_BIT);
 vbo->bind(shader);
 vbo->drawArrays(GL_TRIANGLES);

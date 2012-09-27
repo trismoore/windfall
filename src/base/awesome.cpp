@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdarg.h>
 
 #include "awesome.hpp"
 #include "shader.hpp"
@@ -8,6 +9,7 @@
 
 Awesomium::WebView* Awesome::webView;
 Awesomium::WebCore* Awesome::webCore;
+int Awesome::updatesLastSecond = 0;
 
 void Awesome::render()
 {
@@ -17,6 +19,7 @@ void Awesome::render()
   glBindTexture(GL_TEXTURE_2D, texture);
   if (webView->isDirty())// && !webView->isResizing())
   {
+    updatesLastSecond++;
     const Awesomium::RenderBuffer* m_buffer = webView->render();
     if (m_buffer->rowSpan != m_buffer->width * 4)
       console.warning("Awesomuim: rowSpan != width*4 - expect weird results");
@@ -301,6 +304,16 @@ void Awesome::runJS(std::string js)
 // DON'T DO THIS (recursive)  console.logf("AwesomeJS> %s", js.c_str());
 //printf("AwesomeJS> %s", js.c_str());
   webView->executeJavascript(js);
+}
+
+void Awesome::runJSf(const char *string, ...)
+{
+	char temp_text[1024];
+        va_list argptr;
+        va_start(argptr, string);
+        vsnprintf(temp_text, 1024, string, argptr);
+        va_end(argptr);
+	runJS(temp_text);
 }
 
 // webview listener functions

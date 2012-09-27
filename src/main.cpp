@@ -61,8 +61,9 @@ int main(int argc, char ** argv)
     ++frames;
     if (oneSecondTimer < 0) {
       oneSecondTimer = 1.0;
-      console.debugf("<strong>%d</strong> frames rendered last second, [last frame <i>dTime</i>=%.3fms (%.1f fps), <i>actual render time</i> = %.3fms (<strong>%.1f</strong> fps)]",
-		     frames, 1000.f*gdT, 1.f/gdT, 1000.f*(timeEndFrame-gTime), 1.f/(timeEndFrame-gTime));
+      awesome.runJSf("UI.message('<strong>%d</strong> last second, [last frame <i>dTime</i>=%.3fms (%.1f fps), <i>actual</i> = %.3fms (<strong>%.1f</strong> fps)]; AwesomeLastSec=%d');",
+		     frames, 1000.f*gdT, 1.f/gdT, 1000.f*(timeEndFrame-gTime), 1.f/(timeEndFrame-gTime), Awesome::updatesLastSecond);
+	Awesome::updatesLastSecond = 0;
       frames=0;
     }
 

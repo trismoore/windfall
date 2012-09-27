@@ -18,7 +18,7 @@ Console::Console(char indentChar) : indentChar(indentChar)
 
   logFile.open(LOG_FILENAME);
   logFile << "<html><head><title>Windfall log</title></head>\n"
-           << "<link rel='stylesheet' href='data/html/css/windfall.css'>\n"
+           << "<link rel='stylesheet' href='data/html/styles/windfall.css'>\n"
            << "<body class='log'>\n"
            << "<h1>Windfall log</h1>\n"
 	   << "<ul class='log'>\n";
@@ -116,7 +116,7 @@ void Console::popBackBuffer(Awesomium::WebView* caller, const Awesomium::JSArgum
 		std::string l = *it;
 		JSONlines += l;
 	}
-	JSONlines += "\");";
+	JSONlines += "\"); scrollToBottomOfConsoleSlow();";
 	caller->executeJavascript(JSONlines);
 	// now that we're loaded, we can now just add lines in the write method
 	passLineToJS = true;

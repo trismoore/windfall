@@ -45,13 +45,13 @@ void Shader::load(const std::string &file)
     if (line.size() > 0) {
       if (substr(line,-1).compare(":")==0) {
         type = substr(line,0,-1);
-        console.debugf("Shader <em>%s</em> starting section <em>%s</em>", file.c_str(), type.c_str());
+        console.debugf("Shader <strong>%s</strong> starting section <em>%s</em>", file.c_str(), type.c_str());
       } else {
         // i hate c++ strings
         std::ostringstream oss;
         oss << "#line " << i << '\n' << line << '\n';
         shaders[type] += oss.str();
-	console.debugf("<code>%s %03d: %s</code>",type.c_str(), i, tmp.c_str());
+	console.debugf("<code>%8s %03d: %s</code>",type.c_str(), i, tmp.c_str());
       }
     }
   }

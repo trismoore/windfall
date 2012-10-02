@@ -19,8 +19,6 @@ OGL::OGL() {}
 OGL::~OGL() {}
 
 void OGL::quit() { running = false; console.quitting(); }
-void OGL::Quit(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
-{ quit(); }
 
 void OGL::init()
 {
@@ -32,12 +30,12 @@ void OGL::init()
   nummodes = glfwGetVideoModes( list, 200 );
   for (int i=0; i<nummodes; ++i) {
     float aspect = float(list[i].Width)/float(list[i].Height);
-    char *aspTxt = "?";
+    const char *aspTxt = "?";
     if (aspect > 1.30 && aspect < 1.36) aspTxt="4:3";
     else if (aspect > 1.75 && aspect < 1.80) aspTxt="16:9";
     else if (aspect > 1.57 && aspect < 1.61) aspTxt="8:5";
     else if (aspect > 1.22 && aspect < 1.27) aspTxt="5:4";
-    console.debugf("%4dx%4d (%s, aspect=%.2f) %dbits (%dr,%dg,%db)", list[i].Width, list[i].Height, aspTxt, aspect,
+    console.debugf("%4dx%4d (%4s, aspect=%.2f) %dbits (%dr,%dg,%db)", list[i].Width, list[i].Height, aspTxt, aspect,
 		   list[i].RedBits+list[i].GreenBits+list[i].BlueBits, list[i].RedBits, list[i].GreenBits, list[i].BlueBits);
   }
   console.outdent();

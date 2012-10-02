@@ -6,6 +6,16 @@ $(document).ready(function() {
 		UI = {};
 		UI.addToLog = function(m,c) { };
 		UI.Quit = function() { alert("Would be quitting now."); };
+		UI.loadStringFromFile = function(f,c) { 
+			eval(c+"(\"{\\\"one\\\":4234}\");");
+		}
+	}
+
+	window.quit = function() {
+		console.log("Saving static object to file");
+		saveStaticObject();
+		console.log("Quitting");
+		UI.quit();
 	}
 
 	var onMenuItemSelected = function(e) {
@@ -13,10 +23,9 @@ $(document).ready(function() {
 		//console.log("Top Menu Item Selected: " + t);
 		switch(t) {
 			case "Quit":
-				console.log("Quitting");
-				UI.Quit();
+				quit();
 			break;
-			case "Console":
+			case "Console": case "Toggle Console":
 				if ($('#consoleWindow').parent().css('display')!='block') {
 					$('#consoleWindow').data("kendoWindow").open();
 					setTimeout(scrollToBottomOfConsole, 100);
@@ -25,6 +34,10 @@ $(document).ready(function() {
 					$('#consoleWindow').data("kendoWindow").close();
 				}
 			break;
+			case "Errors only": console.setVerbosity(0); break;
+			case "Errors & Warnings": console.setVerbosity(1); break;
+			case "Normal messages": console.setVerbosity(2); break;
+			case "Debugging messages": console.setVerbosity(3); break;
 			default:
 				console.log("Unknown menu item: " + t);
 			break;
@@ -38,8 +51,16 @@ $(document).ready(function() {
 					{ text: "test1" },
 					{ text: "test two" }
 				]
-			},
-			{ text: "Console" },
+			 },
+			{ text: "Console" ,
+				items: [
+					{ text: "Toggle Console" },
+					{ text: "Errors only" },
+					{ text: "Errors & Warnings" },
+					{ text: "Normal messages" },
+					{ text: "Debugging messages" }
+				]
+			 },
 			{ text: "Quit" }
 		],
 		select: onMenuItemSelected
@@ -54,9 +75,11 @@ $(document).ready(function() {
 			minWidth: 220,
 			minHeight: 120,
 			actions: ["Maximize","Close"],
-			appendTo: "#content"
+			appendTo: "#content",
+			visible: false
 		});
 		$('#consoleInputBar input').focus();
+
 	}
 	consoleWindow.data("kendoWindow").maximize();
 
@@ -74,9 +97,14 @@ $(document).ready(function() {
 		return l.scrollTop() + l.height() - (l[0].scrollWidth>l[0].offsetWidth?scrollbarSize:0) == l[0].scrollHeight;
 	}
 
-	window.scrollToBottomOfConsole = function() {
+	window.scrollToBottomOfConsoleInstantly = function() {
 		var cw = $('#consoleWindow ul.log');
 		cw.scrollTop(cw[0].scrollHeight);
+	}
+
+	window.scrollToBottomOfConsole = function() {
+		// delay it a bit, incase anything gets put on the console that requires loading, like an image for instance.
+		setTimeout(scrollToBottomOfConsoleInstantly, 100);
 	}
 
 	window.scrollToBottomOfConsoleSlow = function(speed) {
@@ -100,15 +128,15 @@ $(document).ready(function() {
 					val='[null]'; 
 					cls='null'; 
 				} else if (obj instanceof Array) {
-					val='[' + obj.toString().entityify() + ']';
+					//val='[' + obj.toString().entityify() + ']';
+					val='[' + obj.length + (obj.length > 1 ? ' items]' : ' item]');
 					//val=preAndSyntax(obj);
 					cls='array';
 				} else if (Object.keys(obj).length == 0) {
 					val=Object.prototype.toString.call(obj);
 					if (val=='[object Object]') val+=' (empty)';
 				} else {
-					hasChildren=true;
-					val='';//Object.prototype.toString.call(obj) + ' (with children)';
+					val=Object.prototype.toString.call(obj);// + ' (with children)';
 				}
 				break;
 			default:
@@ -143,7 +171,8 @@ $(document).ready(function() {
 		var typ = typeof obj;
 		// if it's an object (not null) and has children then we should treeView it to allow exploring
 		if ('object' == typ && null !== obj && Object.keys(obj).length > 0) {
-			var elementTreeView = $('<div class="elementTreeView">').kendoTreeView();
+			var elementTreeView = $('<div class="elementTreeView">');
+			elementTreeView.kendoTreeView();
 			elementTreeView.data('kendoTreeView').bind('expand',function (e) {
 				var scroll = isElementScrolledToBottom($('#consoleWindow ul.log'));
 				var n = $(e.node);
@@ -161,6 +190,7 @@ $(document).ready(function() {
 			var scroll = isElementScrolledToBottom($('#consoleWindow ul.log'));
 			$('#consoleWindow ul.log').append($('<li class="'+logType+'">').append(elementTreeView));
 			UI.addToLog(syntaxSpan(obj),logType);
+			// ?? elementTreeView.data('kendoTreeView').expand('.k-item');
 			if (scroll) scrollToBottomOfConsole();
 		} else { // not a complicated object, just print it without a tree
 			addToConsole(syntaxSpan(obj),logType);
@@ -180,34 +210,64 @@ $(document).ready(function() {
 	}
 	window.addToConsoleAndLog = function(m,c) {
 		if ("undefined" == typeof(c)) c='log';
-		if (typeof m != 'string') m = syntaxSpan(m);
+		if (typeof m != 'string') 
+		  m = syntaxSpan(m);
 		UI.addToLog(m,c);   // send it back to the engine, so we can log it
 		addToConsole(m,c);
 	};
 
 	// Hijack javascript console to also print to ours
 	(function(){
-		var oldLog = console.log;
+		function splitArgumentsAndSyntaxSpan(message) {
+			if (arguments.length > 1) {
+				var t="";
+				for (var i=0; i<arguments.length; ++i)
+					t+=syntaxSpan(arguments[i]) + (i<arguments.length-1 ? ", " : "");
+				return t;
+			} else {
+				// strings should be left as-is, not quoted
+				if (typeof message != 'string')
+	 				return syntaxSpan(message);
+				else return message;
+			}
+		}
+
+		console.oldLog = console.log;
 		console.log = function (message) {
-			addToConsoleAndLog(message,"log");
-			oldLog.apply(console, arguments);
+			addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"log");
+			console.oldLog.apply(console, arguments);
 		};
-		var oldError = console.error;
+		console.oldError = console.error;
 		console.error = function(message) {
-			addToConsoleAndLog(message,"error");
-			oldError.apply(console, arguments);
+			addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"error");
+			console.oldError.apply(console, arguments);
 		};
-		var oldWarning = console.warn;
+		console.oldWarn = console.warn;
 		console.warn = function(message) {
-			addToConsoleAndLog(message,"warning");
-			oldWarning.apply(console, arguments);
+			addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"warning");
+			console.oldWarn.apply(console, arguments);
 		};
-		var oldInfo = console.info;
+		console.oldInfo = console.info;
 		console.info = function(message) {
-			addToConsoleAndLog(message,"debug");
-			oldInfo.apply(console, arguments);
+			addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"debug");
+			console.oldInfo.apply(console, arguments);
 		};
 	})();
+
+/*
+	window.onerror = function(msg, url, line) {
+		console.error("[" + url + ":" + line + "] Uncaught error: " + msg);
+		//return true;
+	}
+*/
+	console.setVerbosity = function(v) {
+		if (typeof v != 'number' || v < 0 || v > 3) { console.error("Console Verbosity must be between 0 and 3!"); return; }
+		$('#consoleWindow')
+			.toggleClass("hideDebug", v < 3)
+			.toggleClass("hideLog", v < 2)
+			.toggleClass("hideWarning", v < 1);
+		scrollToBottomOfConsoleSlow();
+	};
 
 	// neat history function (press UP in input box to get previous commands)
 	UI.consoleInputBuffer = [];
@@ -218,14 +278,12 @@ $(document).ready(function() {
 			var t = $('#consoleInputBar input').val();
 			UI.consoleInputBufferPos = UI.consoleInputBuffer.length;
 			UI.consoleInputBuffer[UI.consoleInputBufferPos++] = t;
-			console.log("> " + t.entityify());
+			console.log("&gt; " + t.entityify());
 			$('#consoleInputBar input').val("");
 			//console.log("Evaling " + t);
 			try {
 				r = window.eval(t);
-			//	if ("undefined" != typeof(r)) 
-					//console.log(r);
-					//console.log(preAndSyntax(r));
+				//if ("undefined" != typeof(r))
 					elementTree(r);
 			} catch (e) {
 				console.error(e.message);
@@ -252,8 +310,31 @@ $(document).ready(function() {
 	// (the engine saves all messages while we're loading)
 	if (runningInBrowser) {
 		console.log("We're running in a browser, adding some dummy text here...");
-		for (var i=0;i<100;++i) console.log("blah " + i);
+		for (var i=0;i<10;++i) console.log("blah " + i);
+		console.info("eg info");
+		console.log("eg log");
+		console.warn("eg Warning!");
+		console.error("eg Error!!!");
 		console.log("See also <a href='../../windfall_log.html'>log file</a>");
-	} else
+	} else {
 		UI.popBackBuffer();
+	}
+
+	window.loadStaticObject = function(s) { 
+		UI.static = JSONfn.parse(s);
+		if (UI.static != undefined && UI.static.autorun != undefined && UI.static.autorun.length > 0) {
+			$.each(UI.static.autorun,function(k,v) {
+				console.log("Autorunning " + k + ", \"" + v + "\"");
+				if (typeof v == 'function') v.call();
+				else eval(v);
+			});
+		}
+
+		if (UI.static.showConsole) $('#consoleWindow').data('kendoWindow').open();
+	}
+
+	window.saveStaticObject = function() {
+		UI.saveStringToFile("static.json", JSONfn.stringify(UI.static));
+	}
+	UI.loadStringFromFile("static.json","loadStaticObject");
 });

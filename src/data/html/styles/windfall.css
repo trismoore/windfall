@@ -123,9 +123,13 @@ pre {
 #consoleInputBar {
 	position:absolute; left:0;right:0;bottom:1px;height:2em;
 }
-#consoleInputBar input {
-	position:absolute; left:0.3em;bottom:0.1em;top:0.1em;right:1.5em;height:1.8em; border: 1px solid black;
+#consoleInputBar #consoleInput {
+	position:absolute; left:3px;top:3px;right:24px;
+	border: 1px solid black;
 }
+#consoleWindow.hideDebug li.debug { display: none; }
+#consoleWindow.hideLog li.log { display: none; }
+#consoleWindow.hideWarning li.warning { display: none; }
 
 
 /* syntax highlighting */

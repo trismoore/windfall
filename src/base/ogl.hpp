@@ -29,7 +29,6 @@ public:
 
   static void quit();
   static bool isRunning() { return running; }
-  void Quit(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
 };
 
 extern OGL ogl;

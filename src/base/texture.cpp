@@ -1,4 +1,5 @@
 #include "texture.hpp"
+#include "useful.h"
 
 #define FOURCC_DXT1 0x31545844 // Equivalent to "DXT1" in ASCII
 #define FOURCC_DXT3 0x33545844 // Equivalent to "DXT3" in ASCII
@@ -65,17 +66,17 @@ void Texture::filterMipmap()
 void Texture::loadDDS(const char* f)
 {
   assert(f);
-  filename = f;
+  filename = std::string(DATA_DIR) + f;
 
   // much of this from www.opengl-tutorial.org
-  console.logf("Loading DDS from %s", f).indent();
+  console.logf("Loading DDS from %s", filename.c_str()).indent();
 
   unsigned char header[124];
 
   FILE *fp;
 
   /* try to open the file */
-  fp = fopen(f, "rb");
+  fp = fopen(filename.c_str(), "rb");
   if (fp == NULL) {
     console.error("Can't open file").outdent();
     throw "loadDDS: Can't open file";
@@ -91,7 +92,7 @@ void Texture::loadDDS(const char* f)
 	throw "loadDDS: Can't read first 4 bytes (magic number)";
   }
   assert(4==r);
-  if (filecode[0]!='D' || filecode[1]!='D' || filecode[2]!='S' || filecode[4]!=' ') {
+  if (filecode[0]!='D' || filecode[1]!='D' || filecode[2]!='S' || filecode[3]!=' ') {
     fclose(fp);
     console.error("File isn't DDS format!").outdent();
     throw "loadDDS: Not DDS format";

@@ -78,8 +78,7 @@ ENDIF(NOT WIN32)
 
 set(MODULES
  base
- test
-# landscape
+ land
 # windfall
 )
 

@@ -1,5 +1,7 @@
 #include <iostream>
+#include <string>
 #include <stdarg.h>
+#include <algorithm>
 
 #include "awesome.hpp"
 #include "shader.hpp"
@@ -82,6 +84,11 @@ Awesome::Awesome(Config* config)
 
   logOpenGLErrors();
   console.log("Finished Awesome Startup").outdent();
+
+  console.log("Registering functions");
+  registerCallbackFunction( L"UI", L"quit", Awesomium::JSDelegate(this, &Awesome::JSquit));
+  registerCallbackFunction( L"UI", L"saveStringToFile", Awesomium::JSDelegate(this, &Awesome::JSsaveStringToFile));
+  registerCallbackFunction( L"UI", L"loadStringFromFile", Awesomium::JSDelegate(this, &Awesome::JSloadStringFromFile));
 }
 
 Awesome::~Awesome()
@@ -302,7 +309,7 @@ void Awesome::registerCallbackFunction(std::wstring object,
 void Awesome::runJS(std::string js)
 {
 // DON'T DO THIS (recursive)  console.logf("AwesomeJS> %s", js.c_str());
-//printf("AwesomeJS> %s", js.c_str());
+//printf("AwesomeJS> %s\n", js.c_str());
   webView->executeJavascript(js);
 }
 
@@ -545,4 +552,71 @@ void Awesome::onResponse (Awesomium::WebView *caller,
     console.logf("%d %s", statusCode, url.c_str());
 //  else
 //    LOG_PRINTF("%d %s", statusCode, url.c_str());
+}
+
+void Awesome::JSsaveStringToFile(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
+{
+	if (args.size() < 2 || !args[0].isString() || !args[1].isString()) { 
+		console.error("usage: saveStringToFile([string] filename, [string] stringToSave)"); return; }
+	std::wstring a0 = args[0].toString();
+	std::string filename(a0.begin(), a0.end());
+	FILE *fp = fopen(filename.c_str(),"wt");
+//printf("fopen(%s)\n",filename.c_str());
+	if (fp) { 
+		fprintf(fp, "%ls", args[1].toString().c_str());
+//printf("<< %ls\n", args[1].toString().c_str());
+		fclose(fp);
+	} else console.errorf("Can't open '%ls' to write to!",args[0].toString().c_str());
+}
+
+void Awesome::JSloadStringFromFile(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
+{
+	if (args.size() < 2 || !args[0].isString() || !args[1].isString()) { 
+		console.error("usage: loadStringFromFile([string] filename, [string] function name to call)"); return; }
+	std::wstring a0 = args[0].toString();
+	std::string filename(a0.begin(), a0.end());
+	FILE *fp = fopen(filename.c_str(),"rt");
+//printf("fopen(%s)\n",filename.c_str());
+	if (fp) {
+		fseek(fp,0,SEEK_END);
+		long size = ftell(fp);
+//printf("getting %ld\n",size);
+		char *buf = new char[size+1];
+		rewind(fp);
+		size_t r=fread(buf,1,size,fp);
+//printf("read %u\n",r);
+		if (r!=size) { console.errorf("Error reading %ls: read %u bytes, expected %ld.", args[0].toString().c_str(), r, size); }
+		buf[size]='\0';
+		fclose(fp);
+		std::wstring a1(args[1].toString());
+		std::string func(a1.begin(),a1.end());
+
+		std::string out; // javascript can't have any special characters
+		for (int i=0; i<size; ++i) {
+			char c = buf[i];
+			if (c>=' ') {
+				if (c == '\\' || c == '"') out += '\\';
+				out += c;
+			} else {
+				switch (c) {
+					case '\b': out += "\\b"; break;
+					case '\f': out += "\\f"; break;
+					case '\n': out += "\\n"; break;
+					case '\r': out += "\\r"; break;
+					case '\t': out += "\\t"; break;
+					default:
+						printf("loadStringFromFile: is this a binary file? Not sure what to do with %c (%u)\n", c,(unsigned)c);
+				}
+			}
+		}
+//printf("lSFF< %s\nlSFF> %s\n", buf, out.c_str());
+//printf("Running %s(\"%s\");\n", func.c_str(), out.c_str());
+		runJSf("%s(\"%s\");", func.c_str(), out.c_str());
+		delete[] buf;
+	} else console.errorf("Can't open '%ls' to read from!",args[0].toString().c_str());
+}
+
+void Awesome::JSquit(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
+{
+	OGL::quit();
 }

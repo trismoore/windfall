@@ -1,0 +1,212 @@
+#include "landscape.hpp"
+#include "console.hpp"
+#include "config.hpp"
+#include "shader.hpp"
+#include "vbo.hpp"
+#include "useful.h"
+#include "camera.hpp"
+#include "texture.hpp"
+
+extern Camera* g_camera;
+
+Landscape::Landscape(Config* config)
+{
+	console.log("Landscape loading").indent();
+	shader = new Shader("land.shader");
+	vbo = new VBO();
+
+	int numberOfLODLevels = config->getInt("land.lodlevels", 2);
+	int C=config->getInt("land.columns",52), R=config->getInt("land.rows",52);
+
+	console.log("Making hexGrid for landscape").indent();
+
+	console.logf("Creating grid: %dx%d = %d vertices",R,C,R*C);
+
+	// we only need XY, height (Z) is read from the texture
+	float *gridXY = new float[R*C*2];
+	float *g = gridXY;
+	for (int iy=0; iy<R; ++iy) {
+		for (int ix=0; ix<C; ++ix) {
+//      *g++ = clamp( ((float(ix)+0.5f*(iy%2))/float(C-1)), 0,1); // X offset if Y is odd
+//      *g++ = float(iy)/float(R-1);
+			// X offset if Y is odd
+			*g++ = clamp(((float(ix)+0.5f*(iy%2)-1.5)/float(C-4)), 0,1);
+			*g++ = float(iy-1)/float(R-3);
+		}
+	}
+	vbo->pushData("vertex", 2, R*C, gridXY);
+	delete[] gridXY;
+
+	// now index into the grid for triangles
+#define addIndex(_c,_r) \
+	{ \
+	index[i] = _c + (_r) * C; \
+	if (index[i]>mx) mx=index[i]; \
+	if (index[i]<mn) mn=index[i]; \
+	if (index[i]>=R*C) console.errorf("Index Out Of Range: (%d+%d*%d) %d >= %d on i=%d lod=%d", _c,_r,C,index[i],R*C,i,lambda); \
+	++i; \
+	}
+
+#define addIndex2(_c,_r) \
+	{ addIndex(_c,_r); addIndex(_c,_r); }
+
+	indicesLocations.resize(numberOfLODLevels+1);
+	int offset = 0;
+	int mn=999999,mx=0;
+
+	console.logf("Creating %d LOD levels (0-%d)",numberOfLODLevels,numberOfLODLevels-1);
+	for (int lambda = 0; lambda < numberOfLODLevels; ++lambda) {
+		console.logf("LOD %d", lambda).indent();
+
+		// STITCH LIST (not needed for LOD 0)
+		if (lambda >= 1) {
+			std::vector<GLuint> index;
+			int i=0;
+      //      int i = stitchList.size ();
+			int numAdded = (3 * (R + C - 7)) / pow(2, lambda - 1);
+      //      int N = index.size() + numAdded;
+      //      stitchNumbersList[lambda] = N;
+			index.resize(numAdded);
+			int shift = (lambda == 1) ? 1 : 0;
+			int halfstride = pow(2, lambda - 1);
+			int stride = pow(2, lambda);
+
+			for (int r = 1; r < R - 2; r += stride) {
+				//West
+				addIndex(1, r);
+				addIndex(1, r + halfstride );
+				addIndex(1, r + stride);
+				//East
+				addIndex(C - 3, r);
+				addIndex(C - 3, r + stride);
+				addIndex(C - 3 + shift, r + halfstride);
+			}
+
+			for (int c = 1; c < C - 3; c += stride) {
+				//North
+				addIndex(c, 1);
+				addIndex(c + stride, 1);
+				addIndex(c + halfstride, 1);
+				//South
+				addIndex(c, R - 2);
+				addIndex(c + halfstride, R - 2);
+				addIndex(c + stride, R - 2);
+			}
+
+			console.logf("%d indices in stitch",numAdded);
+			vbo->pushIndices(index.size(), &index[0]);
+			indicesLocations[lambda].stitchOffset = offset;
+			indicesLocations[lambda].stitchCount = index.size();
+			offset+=index.size();
+		} else {
+			// lod 0 gets no stitching
+			indicesLocations[lambda].stitchOffset = offset;
+			indicesLocations[lambda].stitchCount = 0;
+		}
+		// STRIP (all LODs)
+		{
+			int stride = pow(2, lambda);
+			int shift = stride / 2;
+			std::vector<GLuint> index;//& = stripArray[lambda];
+			int M_strip = ((R - 3) / (stride * 2)) *
+				((C - 4) * 4 / stride + 10) - 3;
+			if (M_strip < 0) {
+				console.error("There aren't enough vertices to do LOD on this patch!");
+				console.errorf("index resize %d = ((%d-3)/(%d*2)) * ((%d-4)*4/%d+10) - 3", M_strip,R,stride,C,stride);
+			}
+			index.resize (M_strip);
+			int colEnd = (lambda == 0) ? C - 2 : C - 3;
+			int r = 1, i = 0;
+
+			while (r <= R - 4) {
+				// EVEN rows
+				addIndex(colEnd, r + stride);
+				for (int c = C - 3; c >= 1; c -= stride) {
+					addIndex(c, r);
+					if (c == 1) { addIndex(c, r + stride); }
+					else        { addIndex(c - shift, r + stride ); }
+				}
+				// Degenerate triangles
+				r += stride;
+				addIndex2(1, r);
+				// ODD rows
+				for (int c = 1; c <= C - 3; c += stride) {
+					addIndex(c, r + stride );
+					if (lambda == 0)     { addIndex(c + 1, r); }
+					else if (c == C - 3) { addIndex(c, r); }
+					else                 { addIndex(c + shift, r ); }
+				}
+				// Degenerate triangles
+				r += stride;
+				if (r <= R - 4) {
+					addIndex(colEnd, r - stride);
+					addIndex2(colEnd, r + stride);
+				}
+			}
+			console.logf("%d indices in strip", index.size());
+			vbo->pushIndices(index.size(), &index[0]);
+			indicesLocations[lambda].stripOffset = offset;
+			indicesLocations[lambda].stripCount = index.size();
+			offset+=index.size();
+		}
+		console.outdent();
+	} // lambda
+
+	console.logf("Min max of indices: %d %d (should be within 0 %d)",mn,mx,R*C);
+
+	console.logf("indices:");
+	for (int i=0; i<numberOfLODLevels; ++i) {
+		console.logf("%d strip %d+%d<%d stitch %d+%d<%d",i,
+			indicesLocations[i].stripOffset,
+			indicesLocations[i].stripCount,
+			indicesLocations[i].stripOffset +
+			indicesLocations[i].stripCount,
+			indicesLocations[i].stitchOffset,
+			indicesLocations[i].stitchCount,
+			indicesLocations[i].stitchOffset +
+			indicesLocations[i].stitchCount  );
+	}
+
+//  vbo->PushIndices(indices.size(), &indices[0]);
+	vbo->create();
+
+	console.outdent();
+
+	console.log("Loading texture");
+	texHeights = new Texture("land/land.dds");
+	texHeights->wrapClamp();
+	texHeights->filterLinear();
+
+	console.outdent();
+}
+
+Landscape::~Landscape()
+{
+	console.log("Landscape closing");
+	delete shader;
+	delete vbo;
+	delete texHeights;
+}
+
+void Landscape::render()
+{
+	texHeights->bind(0);
+	shader->setCamera(g_camera);
+	vbo->bind(shader);
+	logOpenGLErrors();
+
+	int l=0; // LOD Level
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	vbo->drawElements(GL_TRIANGLE_STRIP,
+                          indicesLocations[l].stripCount,
+                          indicesLocations[l].stripOffset);
+	logOpenGLErrors();
+	vbo->drawElements(GL_TRIANGLE_STRIP,
+                          indicesLocations[l].stitchCount,
+                          indicesLocations[l].stitchOffset);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	logOpenGLErrors();
+}

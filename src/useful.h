@@ -39,4 +39,15 @@ static inline std::string substr(const std::string &str, int start)
   return substr(str,start,str.length());
 }
 
+static inline void replaceAll(std::string& str, const std::string& from, const std::string& to)
+{
+	size_t start_pos = 0;
+	while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+		 str.replace(start_pos, from.length(), to);
+		 start_pos += to.length();
+	}
+}
+
+#define clamp(a,b,c) ( ((a)<(b)) ? (b) : ((a)>(c) ? (c) : (a)) )
+
 #endif//USEFUL_H

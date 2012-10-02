@@ -32,6 +32,12 @@ public:
   Awesome(Config* config);
   ~Awesome();
 
+  // functions that can be called from Javascript
+  void JSgetFile(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
+  void JSsaveStringToFile(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
+  void JSloadStringFromFile(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
+  void JSquit(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
+
   static Awesomium::WebView* webView;
   static Awesomium::WebCore* webCore;
 

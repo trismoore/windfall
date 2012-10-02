@@ -13,7 +13,7 @@ Camera::Camera()
   lookUp = glm::vec3(0,1,0);
   fov = 60;
   nearP =   0.1;
-  farP = 1000.0;
+  farP =  100.0;
   horizAngle = M_PI;
   vertAngle = 0.f;
 

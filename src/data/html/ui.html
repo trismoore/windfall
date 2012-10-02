@@ -5,6 +5,8 @@
 	<script src="js/jquery.min.js" type="text/javascript"></script>
 	<script src="js/kendo.web.js" type="text/javascript"></script>
 	<script src="js/crockford.js" type="text/javascript"></script>
+	<script src="js/jsonfn.js" type="text/javascript"></script>
+	<script src="js/sprintf.js" type="text/javascript"></script>
 	<script src="js/windfall.js" type="text/javascript"></script>
 
 	<link href="styles/kendo.common.min.css" rel="stylesheet" type="text/css" />
@@ -18,10 +20,10 @@
 	<ul id="topMenuBar"></ul>
 	<div id="content" class="k-content">
 		<div id="consoleWindow">
-		<ul class="log">
-			<li>console log goes here...</li>
-		</ul>
-		<div id="consoleInputBar"><input type="text"/></div>
+			<ul class="log"></ul>
+			<div id="consoleInputBar">
+				<input id="consoleInput" type="text"/>
+			</div>
 		</div>
 	</div>
 

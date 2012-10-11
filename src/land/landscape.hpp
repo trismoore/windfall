@@ -20,18 +20,24 @@ class Config;
 
 class Landscape : public Renderer {
 
-  Shader * shader;
-  Texture * texHeights;
-  VBO * vbo;
+	Shader * shader;
+	Texture * texHeights;
+	VBO * vbo;
 
-  std::vector< LandIndices > indicesLocations;
+	std::vector< LandIndices > indicesLocations;
+
+	bool cameraDragging;
+	int cameraMouseX, cameraMouseY;
+	int numberOfLODLevels;
 
 public:
 
-  Landscape(Config*);
-  ~Landscape();
+	Landscape(Config*);
+	~Landscape();
 
-  void render();
+	void render();
+	void onMouseButton(int button, int action);
+	void onMouseMove(int x, int y);
 };
 
 #endif//LANDSCAPE_HPP

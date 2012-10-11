@@ -37,7 +37,6 @@ void VBO::bind(Shader *shader)
 {
   assert(buffer);
   assert(shader);
-
   shader->use();
   logOpenGLErrors();
   for (int i=0; i<numVertexAttribs; ++i) VertexAttribArrayWanted[i]=false;
@@ -52,12 +51,12 @@ void VBO::bind(Shader *shader)
     logOpenGLErrors();
     VertexAttribArrayCurrent[loc] = true;
     VertexAttribArrayWanted[loc] = true;
-    glVertexAttribPointer(loc, p.size, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(p.offset * sizeof(float)));
+    glVertexAttribPointer(loc, p.size, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(p.offset));
     if (logOpenGLErrors())
-      console.errorf("buffer=%d; loc=%d; p.size=%d; offset=%d floats (%d bytes)", buffer, loc, p.size, p.offset, p.offset*sizeof(float));
+      console.errorf("buffer=%d; loc=%d; p.size=%d; offset=%d floats (%d bytes)", buffer, loc, p.size, p.offset, p.offset);
     glEnableVertexAttribArray(loc);
     if (logOpenGLErrors())
-      console.errorf("buffer=%d; loc=%d; p.size=%d; offset=%d floats (%d bytes)", buffer, loc, p.size, p.offset, p.offset*sizeof(float));
+      console.errorf("buffer=%d; loc=%d; p.size=%d; offset=%d floats (%d bytes)", buffer, loc, p.size, p.offset, p.offset);
   }
   // disable the ones we don't want.
   for (int i=0; i<numVertexAttribs; ++i) {
@@ -90,7 +89,7 @@ void VBO::pushData(const std::string &n, const int numElementsPerVertex, const i
   Pointer p;
   p.name = n;
   p.size = numElementsPerVertex;
-  p.offset = data.size();
+  p.offset = data.size() * sizeof(float);
   pointers.push_back(p);
 
   if (count > 0 && numVertices!=count) {
@@ -100,7 +99,7 @@ void VBO::pushData(const std::string &n, const int numElementsPerVertex, const i
   count = numVertices;
 
   data.insert(data.end(), d, d+numVertices*numElementsPerVertex);
-  console.debugf("VBO::PushData %s %d*%d.  Data now %d floats", n.c_str(), numElementsPerVertex, numVertices, data.size());
+  console.debugf("VBO::PushData %s %d*%d.  Data now %d bytes", n.c_str(), numElementsPerVertex, numVertices, data.size() * sizeof(float));
 
 //  for (int i=0; i<data.size(); ++i)
 //    LOG_PRINTF("data[%3d]: %.3f ", i,data[i]);

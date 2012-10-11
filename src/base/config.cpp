@@ -1,4 +1,5 @@
 #include <sstream>
+#include <algorithm>
 
 #include "config.hpp"
 #include "console.hpp"
@@ -85,17 +86,35 @@ int Config::getInt(std::string k, int def)
   else return getInt(k);
 }
 
-void Config::parseArgs(int argc, char **argv)
+void Config::parseArgs(int argc, char **argv, bool skipFirst)
 {
-  for (int i=1; i<argc; ++i) {
+  for (int i=skipFirst?1:0; i<argc; ++i) {
     // parse for config commands (probably of form "width=1920")
     std::string s(argv[i]);
+    s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
     size_t found = s.find("=");
     if (found != std::string::npos) {
       std::string k,v;
       k=s.substr(0,found);
       v=s.substr(found+1);
+//printf("Config::Set %s,%s\n",k.c_str(),v.c_str());
       set(k,v);
     }
   }
+}
+
+void Config::loadFile(const char *filename)
+{
+//printf("Config::loadFIle %s\n",filename);
+	FILE *fp = fopen(filename,"rt");
+	if (!fp) return;
+	char * line = 0;
+	size_t len;
+	ssize_t read;
+	while ((read = getline(&line, &len, fp)) != -1) {
+//printf("getline %d %s %d\n",read,line,len);
+		if (line[0] != '#')
+		parseArgs(1,&line,false);
+	}
+	free(line);
 }

@@ -2,39 +2,43 @@
 #define CAMERA_H
 
 #include <glm/glm.hpp>
+#include "awesome.hpp"
 
 class Camera
 {
-  glm::vec3 pos, lookAt, lookDirection, lookRight, lookUp;
-  float fov;
-  float nearP, farP;
-  float horizAngle, vertAngle;
+	glm::vec3 pos, lookDirection, lookUp;
+	glm::vec3 rotate; // pitch,roll,yaw
+	float fov; // (horizontal)
+	float nearP, farP;
 
-  enum { CAM_LOOK, CAM_LOOKDIRECTION, CAM_ANGLES } mode;
+	static float aspect;
+	Awesome* awesome;
 
 public:
-  glm::mat4 ViewMatrix;
-  glm::mat4 ProjectionMatrix;
-  glm::mat4 VP; // = Projection*View
+	glm::mat4 ViewMatrix;
+	glm::mat4 ProjectionMatrix;
+	glm::mat4 VP; // = Projection*View
 
-  static float aspect;
+	Camera(Awesome* a);
 
-  Camera();
+	void setPos(glm::vec3 p);
 
-  void setPos(glm::vec3 p);
+	void yaw(float y);
+	void pitch(float p);
+	void roll(float r);
+	void forward(float dist_per_second);
+	void backward(float dist_per_second);
+	void left(float dist_per_second);
+	void right(float dist_per_second);
 
-  void look(glm::vec3 p, glm::vec3 l, glm::vec3 u=glm::vec3(0,1,0));
+	void update();
 
-  void yaw(float y);
-  void pitch(float p);
-  void forward(float dist_per_second);
-  void backward(float dist_per_second);
-  void left(float dist_per_second);
-  void right(float dist_per_second);
+	static void resize(const int w, const int h);
 
-  void update();
-
-  static void resize(const int w, const int h);
+	AWESOME_FUNC(JSsetPos);
+	AWESOME_FUNC(JSsetLook);
+	AWESOME_FUNC(JSsetUp);
+	AWESOME_FUNC(JSsetFOV);
 };
 
 #endif//CAMERA_H

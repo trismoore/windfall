@@ -22,7 +22,8 @@ public:
   float getFloat(std::string, float def);
   int getInt(std::string, int def);
 
-  void parseArgs(int argc, char **argv);
+  void parseArgs(int argc, char **argv, bool skipFirst=true);
+  void loadFile(const char *filename);
 };
 
 #endif//CONFIG_HPP

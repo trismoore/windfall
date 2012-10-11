@@ -24,6 +24,7 @@ void OGL::init()
 {
   if (GL_FALSE == glfwInit()) throw "Failed to initialize GLFW";
 
+/*
   console.debug("Getting available video modes for fullscreen").indent();
   int nummodes;
   GLFWvidmode list[ 200 ];
@@ -42,6 +43,7 @@ void OGL::init()
   GLFWvidmode desktop;
   glfwGetDesktopMode(&desktop);
   console.debugf("Desktop is %4dx%4d %dr,%dg,%db", desktop.Width, desktop.Height, desktop.RedBits, desktop.GreenBits, desktop.BlueBits);
+*/
 }
 
 void OGL::terminate()
@@ -71,6 +73,11 @@ void OGL::openWindow(Config* config)
   glfwSetWindowTitle(config->getString("window.title","Windfall").c_str());
   glfwSwapInterval(config->getInt("window.vsync",1));
 
+  if (config->getInt("window.hidemouse",0))
+	glfwDisable( GLFW_MOUSE_CURSOR );
+  else
+	glfwEnable( GLFW_MOUSE_CURSOR );
+
   glfwSetWindowCloseCallback(&glfwCallbackWindowClose);
   glfwSetWindowSizeCallback(&glfwCallbackResize);
   glfwSetKeyCallback(&glfwCallbackKey);
@@ -83,9 +90,9 @@ void OGL::openWindow(Config* config)
   // wrangle some extensions
   glewExperimental = GL_TRUE;
   if (GLEW_OK != glewInit()) throw "GLEW init failed";
+  glGetError();
   console.log("GLEW initialized OK");
 
-  if (logOpenGLErrors()) console.warning("An error message 'GL Error 1280: invalid enumerant' is safe to ignore here (caused by GLEW)");
   int OpenGLVersion[2] = {0};
   glGetIntegerv(GL_MAJOR_VERSION, &OpenGLVersion[0]);
   glGetIntegerv(GL_MINOR_VERSION, &OpenGLVersion[1]);
@@ -93,6 +100,8 @@ void OGL::openWindow(Config* config)
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   logOpenGLErrors();
 }

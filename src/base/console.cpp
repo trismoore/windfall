@@ -97,17 +97,24 @@ Console& Console::write(const int log_level, const std::string& log_class, const
   logFile << msg << "\n";
   if (useBackBuffer) backBuffer.push_back(msg);
   if (passLineToJS) {
-	std::string l = "addToConsole(\"" + msg + "\");";
+	switch(log_level) {
+		case 0: awesome->runJSf("console.info(\"%s\");",msg.c_str()); break;
+		case 1: awesome->runJSf("console.log(\"%s\");",msg.c_str()); break;
+		case 2: awesome->runJSf("console.warn(\"%s\");",msg.c_str()); break;
+		case 3: awesome->runJSf("console.error(\"%s\");",msg.c_str()); break;
+		default: throw "can't pass this error level to JS";
+	}
+/*	std::string l = "addToConsole(\"" + msg + "\");";
 //	  std::string l = "$('#consoleWindow ul.log').append(\"" + msg + "\"); \
 	    $(consoleWindow).animate({scrollTop: consoleWindow.scrollHeight}, 500);";
-	  awesome->runJS(l);
+	  awesome->runJS(l);*/
   }
   return *this;
 }
 
 void Console::popBackBuffer(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
 {
-	std::string JSONlines = "$('#consoleWindow ul.log').append(\"";
+	std::string JSONlines = "$('#consoleWindow ul.log').prepend(\"";
 	for (std::vector<std::string>::iterator it = backBuffer.begin(); it != backBuffer.end(); ++it) {
 /*		std::string l = "addLineToConsole(\""+*it+"\");";
 		caller->executeJavascript(l);
@@ -136,8 +143,9 @@ void Console::addToLog(Awesomium::WebView* caller, const Awesomium::JSArguments&
 
 	char tchar = t.c_str()[0];
 	switch (tchar) {
-		case 'l': write(0,"debug",m); break;
-		case 'i': write(1,"log",m); break;
+		case 'i': // info == debug
+		case 'd': write(0,"debug",m); break;
+		case 'l': write(1,"log",m); break;
 		case 'w': write(2,"warning",m); break;
 		case 'e': write(3,"error",m); break;
 		default: write(0,"debug",std::string("Unknown message class: ")+t); write(0,"debug",m); break;

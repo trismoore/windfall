@@ -14,6 +14,7 @@ Camera * g_camera = 0;
 int main(int argc, char ** argv)
 {
 	console.logf("Starting Windfall (%s)", g_versionString);
+	console.logf("- %s, %s -", __DATE__, __TIME__);
 
 	Config config;
 	console.log("Parsing configuration").indent();
@@ -22,6 +23,9 @@ int main(int argc, char ** argv)
 	config.set("window.height","768");
 	config.set("window.fullscreen",0);
 	config.set("window.title", std::string("Windfall (") + g_versionString + ")");
+	console.outdent();
+	console.debug("Reading config from file").indent();
+	config.loadFile(DATA_DIR "/config");
 	console.outdent();
 	console.debug("Getting command line overrides").indent();
 	config.parseArgs(argc,argv);
@@ -36,11 +40,11 @@ int main(int argc, char ** argv)
 	Landscape landscape(&config);
 
 	Awesome awesome(&config);
-	awesome.loadFile(config.getString("ui.html", "html/ui.html"));
+	awesome.loadFile(config.getString("UI.html", "html/ui.html"));
 
 	console.setupCallback(&awesome);
 
-	Camera * camera = new Camera;
+	Camera * camera = new Camera(&awesome);
 	g_camera = camera;
 
 	gTime = glfwGetTime();
@@ -57,7 +61,7 @@ int main(int argc, char ** argv)
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		camera->look( glm::vec3(0.5,-0.5,0.6), glm::vec3(0.5,0.5,0.0));
+		//camera->look( glm::vec3(0.5,-0.5,0.6), glm::vec3(0.5,0.5,0.0));
 		camera->update();
 
 		landscape.render();

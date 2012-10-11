@@ -8,6 +8,8 @@
 #include "renderer.hpp"
 #include "ogl.hpp"
 
+#define AWESOME_FUNC(name) void name(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
+
 class Shader;
 class VBO;
 
@@ -53,6 +55,9 @@ public:
   void loadURL(std::string url);
   void loadHTML(std::string html);
   void reload();
+
+  void setObjectProperty(const std::wstring& obj, const std::wstring& prop, const Awesomium::JSValue& v);
+  void createObject(const std::wstring& obj);
 
   void runJS(std::string js);
   void runJSf(const char *format, ...);

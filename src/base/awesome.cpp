@@ -2,6 +2,7 @@
 #include <string>
 #include <stdarg.h>
 #include <algorithm>
+#include <dirent.h>
 
 #include "awesome.hpp"
 #include "shader.hpp"
@@ -17,6 +18,7 @@ void Awesome::render()
 {
   webCore->update();
   shader->use();
+  glDisable(GL_DEPTH_TEST);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
   if (webView->isDirty())// && !webView->isResizing())
@@ -32,6 +34,7 @@ void Awesome::render()
   vbo->bind(shader);
   vbo->drawArrays(GL_TRIANGLE_STRIP);
   logOpenGLErrors();
+  glEnable(GL_DEPTH_TEST);
 }
 
 Awesome::Awesome(Config* config)
@@ -43,7 +46,7 @@ Awesome::Awesome(Config* config)
   windowheight = config->getInt("window.height",768);
 
   Awesomium::WebCoreConfig conf;
-  conf.setEnablePlugins(config->getInt("ui.enableplugins",0));
+  conf.setEnablePlugins(config->getInt("UI.enableplugins",0));
   conf.setSaveCacheAndCookies(false);
   conf.setLogLevel(Awesomium::LOG_VERBOSE);
 
@@ -89,6 +92,24 @@ Awesome::Awesome(Config* config)
   registerCallbackFunction( L"UI", L"quit", Awesomium::JSDelegate(this, &Awesome::JSquit));
   registerCallbackFunction( L"UI", L"saveStringToFile", Awesomium::JSDelegate(this, &Awesome::JSsaveStringToFile));
   registerCallbackFunction( L"UI", L"loadStringFromFile", Awesomium::JSDelegate(this, &Awesome::JSloadStringFromFile));
+
+  if (config->getInt("UI.loadModules",1)) {
+	console.log("Enumerating html/modules directory");
+  	std::string directory = std::string(DATA_DIR) + config->getString("UI.modulesDir","html/modules");
+	DIR *dir;
+	struct dirent *ent;
+	dir = opendir(directory.c_str());
+	runJS("UI.modules = [];");
+	if (dir == NULL) {
+		console.errorf("Can't open directory %s%s", DATA_DIR, directory.c_str());
+	} else {
+		while ((ent = readdir(dir)) != NULL) {
+			if (ent->d_name[0] != '.') // no . or .. or hidden files
+				runJSf("UI.modules.push('%s');", ent->d_name);
+		}
+		closedir(dir);
+	}
+  } 
 }
 
 Awesome::~Awesome()
@@ -122,6 +143,18 @@ void Awesome::loadHTML(std::string html)
   reloadString = html;
   reloadType = 3;
   webView->loadHTML(html);
+}
+
+void Awesome::setObjectProperty(const std::wstring& obj, const std::wstring& prop, const Awesomium::JSValue& v)
+{
+//  console.debugf("JS> %ls.%ls = %ls",obj.c_str(),prop.c_str(),v.toString().c_str());
+  webView->setObjectProperty(obj,prop,v);
+}
+
+void Awesome::createObject(const std::wstring& obj)
+{
+//  console.debugf("JS> Creating %ls", obj.c_str());
+  webView->createObject(obj);
 }
 
 void Awesome::reload()
@@ -473,6 +506,7 @@ void Awesome::onJavascriptConsoleMessage(Awesomium::WebView* caller,
 {
   //std::wcout << "[WebViewListener::onJavascriptConsoleMessage]\n\tMESSAGE: " << message << L"\n\tLINE: " << lineNumber << L"\n\tSOURCE: " << source << std::endl;
 //  std::wcout << L"[" << source << L":" << lineNumber << L"] " << message << std::endl;
+//  std::wcout << L"JS>" << message << std::endl;
 //	console.logf("[%ls:%d] %ls", source.c_str(),lineNumber, message.c_str());
 }
 
@@ -559,7 +593,7 @@ void Awesome::JSsaveStringToFile(Awesomium::WebView* caller, const Awesomium::JS
 	if (args.size() < 2 || !args[0].isString() || !args[1].isString()) { 
 		console.error("usage: saveStringToFile([string] filename, [string] stringToSave)"); return; }
 	std::wstring a0 = args[0].toString();
-	std::string filename(a0.begin(), a0.end());
+	std::string filename = std::string(DATA_DIR) + std::string(a0.begin(), a0.end());
 	FILE *fp = fopen(filename.c_str(),"wt");
 //printf("fopen(%s)\n",filename.c_str());
 	if (fp) { 
@@ -574,7 +608,7 @@ void Awesome::JSloadStringFromFile(Awesomium::WebView* caller, const Awesomium::
 	if (args.size() < 2 || !args[0].isString() || !args[1].isString()) { 
 		console.error("usage: loadStringFromFile([string] filename, [string] function name to call)"); return; }
 	std::wstring a0 = args[0].toString();
-	std::string filename(a0.begin(), a0.end());
+	std::string filename = std::string(DATA_DIR) + std::string(a0.begin(), a0.end());
 	FILE *fp = fopen(filename.c_str(),"rt");
 //printf("fopen(%s)\n",filename.c_str());
 	if (fp) {

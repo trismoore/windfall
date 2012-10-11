@@ -8,21 +8,36 @@
 #include "texture.hpp"
 
 extern Camera* g_camera;
+extern double gdT;
 
 Landscape::Landscape(Config* config)
 {
+	cameraDragging = false;
+
 	console.log("Landscape loading").indent();
 	shader = new Shader("land.shader");
+	shader->set("heightScale", config->getFloat("land.heightScale",0.01f));
+
 	vbo = new VBO();
 
-	int numberOfLODLevels = config->getInt("land.lodlevels", 2);
-	int C=config->getInt("land.columns",52), R=config->getInt("land.rows",52);
+	numberOfLODLevels = config->getInt("land.lodlevels", 6);
+	int cC=config->getInt("land.columns",256), cR=config->getInt("land.rows",256);
+	int C=cC,R=cR;
+
+	if (numberOfLODLevels < 1) throw "Incorrect number of LOD levels! (must be >= 1)";
+	if (numberOfLODLevels > 10) console.warningf("land.lodlevels set quite high (%d) - takes a lot of memory!",numberOfLODLevels);
+
+	int mult=(1<<(numberOfLODLevels-1));
+	while ( (C-4) % mult != 0 ) ++C;
+	while ( ((R-3)/2) % mult != 0) ++R;
+	if (C!=cC) console.logf("Changed land.columns %d -> %d: (C-4) must be multiple of %d", cC, C, mult);
+	if (R!=cR) console.logf("Changed land.rows %d -> %d: (R-3)/2 must be multiple of %d", cR, R, mult);
 
 	console.log("Making hexGrid for landscape").indent();
 
 	console.logf("Creating grid: %dx%d = %d vertices",R,C,R*C);
 
-	// we only need XY, height (Z) is read from the texture
+	// we only need XZ, height (Y) is read from the texture
 	float *gridXY = new float[R*C*2];
 	float *g = gridXY;
 	for (int iy=0; iy<R; ++iy) {
@@ -46,6 +61,7 @@ Landscape::Landscape(Config* config)
 	if (index[i]>=R*C) console.errorf("Index Out Of Range: (%d+%d*%d) %d >= %d on i=%d lod=%d", _c,_r,C,index[i],R*C,i,lambda); \
 	++i; \
 	}
+//console.logf("%d: %d,%d = %d",i,_c,_r,index[i]); \
 
 #define addIndex2(_c,_r) \
 	{ addIndex(_c,_r); addIndex(_c,_r); }
@@ -97,10 +113,10 @@ Landscape::Landscape(Config* config)
 			vbo->pushIndices(index.size(), &index[0]);
 			indicesLocations[lambda].stitchOffset = offset;
 			indicesLocations[lambda].stitchCount = index.size();
-			offset+=index.size();
+			offset+=index.size() * sizeof(float);
 		} else {
 			// lod 0 gets no stitching
-			indicesLocations[lambda].stitchOffset = offset;
+			indicesLocations[lambda].stitchOffset = offset * sizeof(float);
 			indicesLocations[lambda].stitchCount = 0;
 		}
 		// STRIP (all LODs)
@@ -147,7 +163,7 @@ Landscape::Landscape(Config* config)
 			vbo->pushIndices(index.size(), &index[0]);
 			indicesLocations[lambda].stripOffset = offset;
 			indicesLocations[lambda].stripCount = index.size();
-			offset+=index.size();
+			offset+=index.size() * sizeof(float);
 		}
 		console.outdent();
 	} // lambda
@@ -156,15 +172,15 @@ Landscape::Landscape(Config* config)
 
 	console.logf("indices:");
 	for (int i=0; i<numberOfLODLevels; ++i) {
-		console.logf("%d strip %d+%d<%d stitch %d+%d<%d",i,
-			indicesLocations[i].stripOffset,
-			indicesLocations[i].stripCount,
-			indicesLocations[i].stripOffset +
-			indicesLocations[i].stripCount,
+		console.logf("%d stitch %6d+%6d<%6d strip %6d+%6d<%6d",i,
 			indicesLocations[i].stitchOffset,
 			indicesLocations[i].stitchCount,
 			indicesLocations[i].stitchOffset +
-			indicesLocations[i].stitchCount  );
+			indicesLocations[i].stitchCount,
+			indicesLocations[i].stripOffset,
+			indicesLocations[i].stripCount,
+			indicesLocations[i].stripOffset +
+			indicesLocations[i].stripCount  );
 	}
 
 //  vbo->PushIndices(indices.size(), &indices[0]);
@@ -173,7 +189,8 @@ Landscape::Landscape(Config* config)
 	console.outdent();
 
 	console.log("Loading texture");
-	texHeights = new Texture("land/land.dds");
+	std::string heightmap(config->getString("land.heightmap","land/land.dds"));
+	texHeights = new Texture(heightmap.c_str());
 	texHeights->wrapClamp();
 	texHeights->filterLinear();
 
@@ -188,25 +205,75 @@ Landscape::~Landscape()
 	delete texHeights;
 }
 
+void Landscape::onMouseButton(int button, int action)
+{
+	if (button == GLFW_MOUSE_BUTTON_RIGHT)
+		cameraDragging = action == GLFW_PRESS;
+}
+
+void Landscape::onMouseMove(int x, int y)
+{
+	double cameraSens = 0.5;
+	if (cameraDragging) {
+		g_camera->yaw(cameraSens * (cameraMouseX - x));
+		g_camera->pitch(cameraSens * (cameraMouseY - y));
+	}
+	cameraMouseX=x;
+	cameraMouseY=y;
+}
+
 void Landscape::render()
 {
+	// move camera around: WASD (**FIXME** probably won't be good on other key layouts)
+	double sens = 0.25;
+	if (glfwGetKey('W')) g_camera->forward(gdT * sens);
+	if (glfwGetKey('S')) g_camera->backward(gdT * sens);
+	if (glfwGetKey('A')) g_camera->left(gdT * sens);
+	if (glfwGetKey('D')) g_camera->right(gdT * sens);
+	if (glfwGetKey('Q')) g_camera->roll(gdT * -45);
+	if (glfwGetKey('E')) g_camera->roll(gdT * +45);
+
 	texHeights->bind(0);
 	shader->setCamera(g_camera);
 	vbo->bind(shader);
 	logOpenGLErrors();
 
-	int l=0; // LOD Level
+	static int l=0; // LOD Level
+	if (glfwGetKey('1')) l=0;
+	if (glfwGetKey('2')) l=1;
+	if (glfwGetKey('3')) l=2;
+	if (glfwGetKey('4')) l=3;
+	if (glfwGetKey('5')) l=4;
+	if (glfwGetKey('6')) l=5;
+	if (glfwGetKey('7')) l=6;
+	if (glfwGetKey('8')) l=7;
+	if (glfwGetKey('9')) l=8;
+	if (glfwGetKey('0')) l=9;
+	if (l>=numberOfLODLevels) l=numberOfLODLevels-1;
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	static bool wireframe = false;
+	if (glfwGetKey('O')) wireframe=true;
+	if (glfwGetKey('P')) wireframe=false;
 
-	vbo->drawElements(GL_TRIANGLE_STRIP,
-                          indicesLocations[l].stripCount,
-                          indicesLocations[l].stripOffset);
-	logOpenGLErrors();
+	if (wireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glDisable(GL_CULL_FACE);
+	}
+
+	//vbo->drawArrays(GL_POINTS);
+
+/*	
 	vbo->drawElements(GL_TRIANGLE_STRIP,
                           indicesLocations[l].stitchCount,
                           indicesLocations[l].stitchOffset);
+*/	
+	vbo->drawElements(GL_TRIANGLE_STRIP,
+                          indicesLocations[l].stripCount,
+                          indicesLocations[l].stripOffset);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	if (wireframe) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glEnable(GL_CULL_FACE);
+	}
 	logOpenGLErrors();
 }

@@ -1,23 +1,29 @@
+header:
+	This is the land shader,
+	it gets the height from a texture
+	and colours it simply
+
 vertex:
-  in vec2 vertex;
-  out vec2 UV;
+	in vec2 vertex;
+	out vec3 pos;
 
-  uniform mat4 VP;
-  uniform sampler2D heightsSampler;
+	uniform mat4 VP;
+	uniform sampler2D heightsSampler;
+	uniform float heightScale;
 
-  void main() {
-    UV = vertex;
-    float h = texture2D( heightsSampler, vertex ).r * 0.4;
-    gl_Position = VP * vec4(vertex,h,1);
-  }
+	void main() {
+		// fetch height from texture
+		float h = texture2D( heightsSampler, vertex ).r;
+		pos = vec3(vertex.x, h, vertex.y);
+		h *= heightScale;
+		gl_Position = VP * vec4(vertex.x,h,vertex.y,1);
+	}
 
 fragment:
-  in vec2 UV;
-  out vec4 color;
-  uniform sampler2D heightsSampler;
+	in vec3 pos;
+	out vec4 color;
 
-  void main()
-  {
-    vec4 t = texture2D( heightsSampler, UV );
-    color = vec4(clamp(t.r-0.3,0,1)+0.2,t.r,1-t.r,1);
-  }
+	void main()
+	{
+		color = vec4(pos,1);
+	}

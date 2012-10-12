@@ -28,8 +28,8 @@ Landscape::Landscape(Config* config)
 	if (numberOfLODLevels > 10) console.warningf("land.lodlevels set quite high (%d) - takes a lot of memory!",numberOfLODLevels);
 
 	int mult=(1<<(numberOfLODLevels-1));
-	while ( (C-4) % mult != 0 ) ++C;
-	while ( ((R-3)/2) % mult != 0) ++R;
+	while ( (C-4) % mult != 0 || C-4<=0 ) ++C;
+	while ( ((R-3)/2) % mult != 0 || (R-3)/2<=0) ++R;
 	if (C!=cC) console.logf("Changed land.columns %d -> %d: (C-4) must be multiple of %d", cC, C, mult);
 	if (R!=cR) console.logf("Changed land.rows %d -> %d: (R-3)/2 must be multiple of %d", cR, R, mult);
 
@@ -96,6 +96,7 @@ Landscape::Landscape(Config* config)
 				addIndex(C - 3, r);
 				addIndex(C - 3, r + stride);
 				addIndex(C - 3 + shift, r + halfstride);
+if (lambda>5) console.logf("W%d+%d+%d E%d,%d,+%d,%d",r,halfstride,stride, r,stride,shift,halfstride);
 			}
 
 			for (int c = 1; c < C - 3; c += stride) {
@@ -107,8 +108,9 @@ Landscape::Landscape(Config* config)
 				addIndex(c, R - 2);
 				addIndex(c + halfstride, R - 2);
 				addIndex(c + stride, R - 2);
+if (lambda>5) console.logf("N%d+%d+%d",c,stride,halfstride);
 			}
-
+console.logf("Stitching %d: r(1;%d-2;+=%d) c(1;%d-3;+=%d)", lambda,R,stride,C,stride);
 			console.logf("%d indices in stitch",numAdded);
 			vbo->pushIndices(index.size(), &index[0]);
 			indicesLocations[lambda].stitchOffset = offset;
@@ -116,7 +118,7 @@ Landscape::Landscape(Config* config)
 			offset+=index.size() * sizeof(float);
 		} else {
 			// lod 0 gets no stitching
-			indicesLocations[lambda].stitchOffset = offset * sizeof(float);
+			indicesLocations[lambda].stitchOffset = offset;
 			indicesLocations[lambda].stitchCount = 0;
 		}
 		// STRIP (all LODs)
@@ -172,15 +174,15 @@ Landscape::Landscape(Config* config)
 
 	console.logf("indices:");
 	for (int i=0; i<numberOfLODLevels; ++i) {
-		console.logf("%d stitch %6d+%6d<%6d strip %6d+%6d<%6d",i,
+		console.logf("%d stitch %6d+%6d*%d<%6d strip %6d+%6d*%d<%6d",i,
 			indicesLocations[i].stitchOffset,
-			indicesLocations[i].stitchCount,
+			indicesLocations[i].stitchCount,sizeof(float),
 			indicesLocations[i].stitchOffset +
-			indicesLocations[i].stitchCount,
+			indicesLocations[i].stitchCount*sizeof(float),
 			indicesLocations[i].stripOffset,
-			indicesLocations[i].stripCount,
+			indicesLocations[i].stripCount,sizeof(float),
 			indicesLocations[i].stripOffset +
-			indicesLocations[i].stripCount  );
+			indicesLocations[i].stripCount*sizeof(float)  );
 	}
 
 //  vbo->PushIndices(indices.size(), &indices[0]);
@@ -282,11 +284,11 @@ void Landscape::render()
 
 	//vbo->drawArrays(GL_POINTS);
 
-/*	
-	vbo->drawElements(GL_TRIANGLE_STRIP,
+	
+	vbo->drawElements(GL_TRIANGLES,
                           indicesLocations[l].stitchCount,
                           indicesLocations[l].stitchOffset);
-*/	
+
 	vbo->drawElements(GL_TRIANGLE_STRIP,
                           indicesLocations[l].stripCount,
                           indicesLocations[l].stripOffset);

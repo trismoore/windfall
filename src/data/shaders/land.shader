@@ -5,6 +5,11 @@ header:
 	and colours it simply
 
 vertex:
+
+	float rand(vec2 co) {
+ 		return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+	}
+
 	in vec2 vertex;
 	out vec3 pos;
 
@@ -14,7 +19,7 @@ vertex:
 
 	void main() {
 		// fetch height from texture
-		float h = texture2D( heightsSampler, vertex ).r;
+		float h = texture2D( heightsSampler, vertex ).r + 0.01 - 0.005 * rand(vertex.xy);
 		pos = vec3(vertex.x, h, vertex.y);
 		h *= heightScale;
 		gl_Position = VP * vec4(vertex.x,h,vertex.y,1);

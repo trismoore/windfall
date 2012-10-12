@@ -1,3 +1,4 @@
+#version 330
 vertex:
 //  in vec2 vertexPos;
   in vec2 vertexUV;

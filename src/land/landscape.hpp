@@ -21,7 +21,9 @@ class Config;
 class Landscape : public Renderer {
 
 	Shader * shader;
-	Texture * texHeights, *texGround;
+	Texture * texHeights;
+	Texture * texGround;
+	Texture * texGroundDetail;
 	VBO * vbo;
 
 	std::vector< LandIndices > indicesLocations;

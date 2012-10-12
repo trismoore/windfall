@@ -57,6 +57,7 @@ Console& Console::indent()
 Console& Console::outdent()
 {
   if (indentNumber>0) indentNumber--;
+  else console.errorf("Console can't outdent: %d", indentNumber);
   indentString[indentNumber]='\0';
   logFile << "</ul></li>\n";
   if (useBackBuffer) backBuffer.push_back("</li></ul>");

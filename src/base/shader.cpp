@@ -21,45 +21,79 @@ Shader::~Shader()
   glDeleteProgram(program);
 }
 
+// read a file in, if any :includes are encountered, then recursively getFile them too
+void Shader::getFile(std::string& source, const std::string &file)
+{
+	std::string filename = std::string(DATA_DIR) + "shaders/" + file;
+	console.logf("Shader::getFile(%s)", filename.c_str()).indent();
+
+	filenames.push_back(filename);
+	int fileNumber = filenames.size();
+	int lineNumber = 0;
+	std::ifstream f;
+	f.open(filename.c_str());
+	if (f.fail()) { console.errorf("Can't open shader file!").outdent(); return; }
+	
+	std::string tmp, line;
+	while (std::getline(f,tmp)) {
+		++lineNumber;
+		line = tmp; trim(line);
+		if (line.size() == 0) continue;
+		// i didn't use #include because
+		// i wanted to make it clear that 
+		// this is NOT an official preprocessor directive.
+		if (line.substr(0,8).compare(":include") == 0) { 
+			getFile(source, substr(line,9,0));
+			continue;
+		}
+		if (substr(line,-1).compare(":") != 0 && line[0]!='#') { // not a special line (of the sort "vertex:" or #version) - prepend #line tag
+			char temp[1000];
+			sprintf(temp, "#line %d %d\n", lineNumber, fileNumber);
+			source += temp;
+//printf("%s", temp);
+		}
+		source += line;
+//printf("%s\n", line.c_str());
+		source += '\n';
+	}
+	f.close();
+
+	console.outdent();
+}
+
+// read file, parse, compile
 void Shader::load(const std::string &file)
 {
+	std::string source;
+	getFile(source, file);
+	loadSource(source);
+}
+
+// read string, parse into vert/frag and then compile each section & link
+void Shader::loadSource(const std::string &source)
+{
   uniform_cache.clear();
-  filename = std::string(DATA_DIR) + "/shaders/" + file;
-  console.logf("Shader::Load <a href='%s'>%s</a>", filename.c_str(),file.c_str());
-  console.debugf("Shader::Load loading from filename %s", filename.c_str());
-  std::ifstream f(filename.c_str());
-  if (f.fail()) {
-    throw "Can't open shader file!";
-  }
-  console.indent();
-  std::string tmp;
+
+  std::stringstream s(source);
   std::string line;
-  std::string source;
-  std::string type = "unknown";
-  int i = 0;
-  // read it in and pre-process it
-  while (std::getline(f,tmp)) {
-    ++i;
-    line = tmp;
-    trim(line);
-    if (line.size() > 0) {
-      if (substr(line,-1).compare(":")==0) {
-        type = substr(line,0,-1);
-        console.debugf("Shader <strong>%s</strong> starting section <em>%s</em>", file.c_str(), type.c_str());
-      } else {
-        // i hate c++ strings
-        std::ostringstream oss;
-        oss << "#line " << i << '\n' << line << '\n';
-        shaders[type] += oss.str();
-	console.debugf("<code>%8s %03d: %s</code>",type.c_str(), i, tmp.c_str());
-      }
+  std::string type="global"; // anything at the top of the file (#version etc) gets put in ALL shaders.
+
+  while (std::getline(s,line)) {
+    if (substr(line,-1).compare(":")==0) {
+      type = substr(line,0,-1);
+    } else {
+      line += '\n';
+      shaders[type] += line;
+//      if (line[0]!='#' && line[1]!='l') // don't output #line lines
+//        console.debugf("<code>%8s: %s</code>", type.c_str(), line.c_str());
     }
   }
+
   // create shaders
   fragment = glCreateShader(GL_FRAGMENT_SHADER);
   vertex = glCreateShader(GL_VERTEX_SHADER);
-  compile(vertex, shaders["vertex"]);
-  compile(fragment, shaders["fragment"]);
+  compile(vertex, shaders["vertex"], shaders["global"]);
+  compile(fragment, shaders["fragment"], shaders["global"]);
   // attach them
   program = glCreateProgram();
   glAttachShader(program, vertex);
@@ -70,17 +104,15 @@ void Shader::load(const std::string &file)
   glGetProgramiv(program, GL_LINK_STATUS, &result);
 
   console.outdent();
-  if (!result) printErrors(program);
+  if (!result) { printErrors(program); throw "boo!"; }
   logOpenGLErrors();
 }
 
-void Shader::compile(GLuint shader, const std::string& source)
+void Shader::compile(GLuint shader, const std::string& source, const std::string& addToTop)
 {
-  // add some standard bits
-  std::string added = "#version 330\n";
-  added += source;
+  std::string added = addToTop + source;
   const char *p = added.c_str();
-  //LOG_PRINTF("Compiling source:\n%s\n",p);
+//  console.logf("Compiling source:\n%s\n",p);
   glShaderSource(shader, 1, &p, NULL);
   glCompileShader(shader);
   GLint result = GL_FALSE;
@@ -143,7 +175,16 @@ void Shader::printErrors(GLuint ID)
   std::stringstream ss(tmp);
   std::string i;
   while (std::getline(ss, i)) {
-    console.errorf("ShaderError in %d: %s",ID,i.c_str());
+    // substitute a filename for the fileNumber in the error
+    std::string precolon;
+    std::string error;
+    int colonPos = i.find(":");
+    precolon = substr(i,0,colonPos);
+    error = substr(i,colonPos+2,0);
+    int fileNumber, lineNumber;
+    sscanf(precolon.c_str(), "%d(%d)", &fileNumber, &lineNumber);
+    console.errorf("Shader %d Error at [%s:%d] %s", ID, filenames[fileNumber].c_str(), lineNumber, error.c_str());
+//    console.errorf("ShaderError in %d: %s",ID,i.c_str());
   }
 }
 

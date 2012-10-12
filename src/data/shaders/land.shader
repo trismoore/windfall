@@ -1,3 +1,4 @@
+#version 330
 header:
 	This is the land shader,
 	it gets the height from a texture
@@ -23,9 +24,16 @@ fragment:
 	in vec3 pos;
 	out vec4 colour;
 	uniform sampler2D groundSampler;
+	uniform sampler2D groundDetail;
 
 	void main()
 	{
 		//colour = vec4(pos,1);
 		colour = texture2D( groundSampler, pos.xz );
+
+		colour.rgb = colour.rgb * 0.3 * 
+		( texture2D( groundDetail, pos.xz*3 ).r
+		+ texture2D( groundDetail, pos.xz*7 ).r
+		+ texture2D( groundDetail, pos.xz*17 ).r
+		+ texture2D( groundDetail, pos.xz*43 ).r);
 	}

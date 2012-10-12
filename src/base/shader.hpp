@@ -22,16 +22,15 @@ class Shader {
   std::vector< GLuint > texUnits;
   GLuint unitCount;
 
-  std::string filename;
-
+  std::vector< std::string > filenames;       // filenames[0] = file we asked for, others are includes
   std::map< std::string, std::string > shaders; // shaders["vertex"] etc
   std::map< std::string, GLint > uniform_cache;
   std::map< std::string, GLint > attribute_cache;
 
-  void load(const std::string& file);
-  void load(const std::vector< std::string> & files);
-  void loadSource(const std::string & source);
-  void compile(GLuint shader, const std::string& source);
+  void getFile(std::string& source, const std::string& file); // grab and append a file to source
+  void load(const std::string& file);    // take a file, read it and then loadSource it
+  void loadSource(const std::string & source); // take a string, parse into vert/frag and compile
+  void compile(GLuint shader, const std::string& source, const std::string& addToTop);
 public:
 
   GLint getUniformLocation(const std::string& name);

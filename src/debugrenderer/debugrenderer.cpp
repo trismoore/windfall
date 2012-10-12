@@ -5,6 +5,10 @@
 #include "vbo.hpp"
 #include "console.hpp"
 
+// which texture units to display
+#define START_UNIT      1
+#define NUMBER_OF_UNITS 4
+
 DebugRenderer::DebugRenderer(Config* config)
 {
   enabled = config->getInt("debug",0);
@@ -19,7 +23,7 @@ DebugRenderer::DebugRenderer(Config* config)
   vbo->create();
 
   shader = new Shader("debug.shader");
-  shader->set("scale", 2.f / 4.0f/*number of outputs*/);
+  shader->set("scale", 2.f / float(NUMBER_OF_UNITS));
 
   console.outdent();
 }
@@ -34,8 +38,8 @@ void DebugRenderer::render()
   if (!enabled) return;
 
   vbo->bind(shader);
-  for (int i=0; i<4; ++i) {
-    shader->set("offX", 2.0f*float(i)/4);
+  for (int i=START_UNIT; i<START_UNIT+NUMBER_OF_UNITS; ++i) {
+    shader->set("offX", 2.0f*float(i-START_UNIT)/float(NUMBER_OF_UNITS));
     shader->set("myTextureSampler", i);
     vbo->drawArrays(GL_TRIANGLE_STRIP);
   }

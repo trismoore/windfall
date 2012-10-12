@@ -188,23 +188,28 @@ Landscape::Landscape(Config* config)
 
 	console.outdent();
 
-	console.log("Loading textures");
+	console.log("Loading textures").indent();
 
-	std::string groundtexture(config->getString("land.groundtexture","land/tex.dds"));
 	std::string heightmap(config->getString("land.heightmap","land/land.dds"));
-
 	texHeights = new Texture(heightmap.c_str());
-	texHeights->bind(3);
+	texHeights->bind(2);
 	texHeights->wrapClamp();
 	texHeights->filterLinear();
-	shader->set("heightsSampler",3);
+	shader->set("heightsSampler",2);
 
+	std::string groundtexture(config->getString("land.groundtexture","land/tex.dds"));
 	texGround = new Texture(groundtexture.c_str());
-	texGround->bind(2);
+	texGround->bind(3);
 	texGround->wrapClamp();
 	texGround->filterMipmap();
-//	texGround->filterLinear();
-	shader->set("groundSampler",2);
+	shader->set("groundSampler",3);
+
+	std::string detailtexture(config->getString("land.detailtexture","land/detail.dds"));
+	texGroundDetail = new Texture(detailtexture.c_str());
+	texGroundDetail->bind(4);
+	texGroundDetail->wrapRepeat();
+	texGroundDetail->filterMipmap();
+	shader->set("groundDetail",4);
 
 	logOpenGLErrors();
 	console.outdent();
@@ -246,8 +251,9 @@ void Landscape::render()
 	if (glfwGetKey('Q')) g_camera->roll(gdT * -45);
 	if (glfwGetKey('E')) g_camera->roll(gdT * +45);
 
-	texHeights->bind(3);
-	texGround->bind(2);
+	texHeights->bind(2);
+	texGround->bind(3);
+	texGroundDetail->bind(4);
 	shader->setCamera(g_camera);
 	vbo->bind(shader);
 	logOpenGLErrors();

@@ -50,6 +50,8 @@ int main(int argc, char ** argv)
 
 	DebugRenderer debug(&config);
 
+	console.log("Finished setup, entering loop...");
+	
 	gTime = glfwGetTime();
 	double timeLastFrame = gTime;
 	double timeEndFrame = gTime;
@@ -87,11 +89,10 @@ int main(int argc, char ** argv)
 		glfwSwapBuffers();
 	}
 
-	console.log("Shutting down OpenGL").indent();
+	console.log("...finished loop, shutting down").indent();
 	ogl.closeWindow();
 	ogl.terminate();
 	console.outdent();
 
 	return 0;
-
 }

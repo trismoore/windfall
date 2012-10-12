@@ -156,3 +156,16 @@ void Shader::setCamera(Camera* camera)
   glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &camera->VP[0][0]);
   logOpenGLErrors();
 }
+
+void Shader::set(const std::string& name, const int i) 
+{ 
+//console.debugf("Shader::seti %d,%s=%d",program,name.c_str(),i);
+	glUniform1i(getUniformLocation(name), i); 
+}
+
+void Shader::set(const std::string& name, const float f)
+{
+//console.debugf("Shader::setf %d,%s=%f",program,name.c_str(),f);
+	glUniform1f(getUniformLocation(name), f);
+}
+

@@ -16,7 +16,7 @@ Landscape::Landscape(Config* config)
 
 	console.log("Landscape loading").indent();
 	shader = new Shader("land.shader");
-	shader->set("heightScale", config->getFloat("land.heightScale",0.01f));
+	shader->set("heightScale", config->getFloat("land.heightScale",0.25f));
 
 	vbo = new VBO();
 
@@ -188,12 +188,25 @@ Landscape::Landscape(Config* config)
 
 	console.outdent();
 
-	console.log("Loading texture");
+	console.log("Loading textures");
+
+	std::string groundtexture(config->getString("land.groundtexture","land/tex.dds"));
 	std::string heightmap(config->getString("land.heightmap","land/land.dds"));
+
 	texHeights = new Texture(heightmap.c_str());
+	texHeights->bind(3);
 	texHeights->wrapClamp();
 	texHeights->filterLinear();
+	shader->set("heightsSampler",3);
 
+	texGround = new Texture(groundtexture.c_str());
+	texGround->bind(2);
+	texGround->wrapClamp();
+	texGround->filterMipmap();
+//	texGround->filterLinear();
+	shader->set("groundSampler",2);
+
+	logOpenGLErrors();
 	console.outdent();
 }
 
@@ -233,7 +246,8 @@ void Landscape::render()
 	if (glfwGetKey('Q')) g_camera->roll(gdT * -45);
 	if (glfwGetKey('E')) g_camera->roll(gdT * +45);
 
-	texHeights->bind(0);
+	texHeights->bind(3);
+	texGround->bind(2);
 	shader->setCamera(g_camera);
 	vbo->bind(shader);
 	logOpenGLErrors();

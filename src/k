@@ -1,1 +1,0 @@
-kate `find \( -path "./glm" -prune -o \( -name "*.hpp" -o -name "*.cpp" -o -name "CMakeLists.txt" \) \) -type f`

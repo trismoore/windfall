@@ -1,1 +1,1 @@
-cat static.json | python -mjson.tool
+cat data/static.json | python -mjson.tool

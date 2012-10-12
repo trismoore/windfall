@@ -11,13 +11,13 @@
 std::map< GLuint, Texture* > Texture::bound;
 
 Texture::Texture()
-  : id(0)
+  : id(0),boundTo(0)
 {
 
 }
 
 Texture::Texture(const char *f)
-  : id(0)
+  : id(0),boundTo(0)
 {
   if (f) loadDDS(f);
 }
@@ -27,38 +27,45 @@ Texture::~Texture()
   glDeleteTextures(1,&id);
 }
 
-void Texture::bind(GLuint unit=0)
+void Texture::bind(int unit)
 {
   if (bound[unit] == this) return;
+  console.debugf("Texture::bind %d to %d",id,unit);
+  boundTo = unit;
   glActiveTexture(GL_TEXTURE0+unit);
   glBindTexture(GL_TEXTURE_2D, id);
   logOpenGLErrors();
+  bound[unit]=this;
 }
 
 void Texture::wrap(GLenum wrap)
 {
-  bind();
+  //bind();
+  assert(boundTo>0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
 }
 
 void Texture::filterNearest()
 {
-  bind();
+  //bind();
+  assert(boundTo>0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
 
 void Texture::filterLinear()
 {
-  bind();
+  //bind();
+  assert(boundTo>0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
 void Texture::filterMipmap()
 {
-  bind();
+  //bind();
+  assert(boundTo>0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 }
@@ -158,6 +165,7 @@ void Texture::loadDDS(const char* f)
 
   if (id) glDeleteTextures(1, &id);
   glGenTextures(1, &id);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, id);
   glPixelStorei(GL_UNPACK_ALIGNMENT,1);
   logOpenGLErrors();
@@ -177,6 +185,12 @@ void Texture::loadDDS(const char* f)
     height /= 2;
   }
   free(buffer);
+
+  // if texture didn't have any mip maps, get GL to generate them for us
+  if (mipMapCount == 1)
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+  glBindTexture(GL_TEXTURE_2D,0);
 
   logOpenGLErrors();
   console.logf("OK, loaded -> %d", id).outdent();

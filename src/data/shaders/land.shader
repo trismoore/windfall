@@ -21,9 +21,11 @@ vertex:
 
 fragment:
 	in vec3 pos;
-	out vec4 color;
+	out vec4 colour;
+	uniform sampler2D groundSampler;
 
 	void main()
 	{
-		color = vec4(pos,1);
+		//colour = vec4(pos,1);
+		colour = texture2D( groundSampler, pos.xz );
 	}

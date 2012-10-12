@@ -9,12 +9,13 @@
 class Texture {
 
   GLuint id;
+  GLuint boundTo;
   std::string filename;
   static std::map< GLuint, Texture* > bound;
 
 public:
 
-  void bind(GLuint unit);
+  void bind(int unit);
   void loadDDS(const char* f);
 
   Texture();

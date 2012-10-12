@@ -5,6 +5,7 @@
 #include "useful.h"
 #include "camera.hpp"
 #include "landscape.hpp"
+#include "debugrenderer.hpp"
 
 double gTime, gdT;
 extern const char* g_versionString;
@@ -47,6 +48,8 @@ int main(int argc, char ** argv)
 	Camera * camera = new Camera(&awesome);
 	g_camera = camera;
 
+	DebugRenderer debug(&config);
+
 	gTime = glfwGetTime();
 	double timeLastFrame = gTime;
 	double timeEndFrame = gTime;
@@ -66,6 +69,9 @@ int main(int argc, char ** argv)
 
 		landscape.render();
 		awesome.render();
+
+		// debug all texture units
+		debug.render();
 
 		timeEndFrame = glfwGetTime();
 		oneSecondTimer -= gdT;

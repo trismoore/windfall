@@ -19,7 +19,7 @@ void Awesome::render()
   webCore->update();
   shader->use();
   glDisable(GL_DEPTH_TEST);
-  glActiveTexture(GL_TEXTURE0);
+  glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, texture);
   if (webView->isDirty())// && !webView->isResizing())
   {
@@ -65,6 +65,7 @@ Awesome::Awesome(Config* config)
 
   console.log("Allocating GL resources").indent();
 
+  glActiveTexture(GL_TEXTURE1);
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -80,8 +81,9 @@ Awesome::Awesome(Config* config)
   vbo->create();
 
   shader = new Shader("awesome.shader");
-  textureSampler = shader->getUniformLocation("myTextureSampler");
-  glUniform1i(textureSampler, 0);
+  shader->set("myTextureSampler",1); // we use unit 1
+//  textureSampler = shader->getUniformLocation("myTextureSampler");
+  //glUniform1i(textureSampler, 0);
 
   console.outdent();
 

@@ -14,8 +14,13 @@ Awesomium (web page rendering code, based on Chromium)
  [uses cmake to find, but I wrote that myself so untested elsewhere]
 Average (font, from Google's web fonts: http://www.google.com/webfonts/specimen/Average, SIL Open Font license 1.1)
  [is in data/html/css]
+KendoUI (I'm using the open-source version)
+ [kendoui.com]
+Simplex noise functions
+ [https://github.com/ashima/webgl-noise]
 
 ==Config==
 
 Config can be specified on the command line:
 $ ./Windfall window.width=1024 window.height=768 window.fullscreen=0
+or in the file data/config, no spaces around the = though!

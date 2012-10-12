@@ -37,7 +37,8 @@ public:
   GLint getUniformLocation(const std::string& name);
   GLint getAttribLocation(const std::string& name);
 
-  void set(const std::string& name, const float f) { glUniform1f(getUniformLocation(name), f); }
+  void set(const std::string& name, const float f);
+  void set(const std::string& name, const int i);
 
   // special case of setUniform: set the camera matrix
   void setCamera(Camera* camera); // set "VP" to camera ViewProjection matrix

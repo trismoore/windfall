@@ -8,6 +8,7 @@ add_library(base STATIC
   vbo.cpp
   camera.cpp
   awesome.cpp
+  uihelper.cpp
 )
 
 target_link_libraries(base ${ALL_LIBS})

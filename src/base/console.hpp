@@ -15,49 +15,49 @@
 
 class Console
 {
-  char indentString[100];
-  int indentNumber;
-  char indentChar;
+	char indentString[100];
+	int indentNumber;
+	char indentChar;
 
-  bool useBackBuffer;
-  std::vector <std::string> backBuffer;
+	bool useBackBuffer;
+	std::vector <std::string> backBuffer;
 
-  Awesome* awesome;
-  bool passLineToJS;
+	Awesome* awesome;
+	bool passLineToJS;
 
-  std::ofstream logFile;
+	std::ofstream logFile;
 
-public:
+	public:
 	void quitting() { passLineToJS = false; } // stop sending the lines to awesomium
-	void setupCallback(Awesome* a);
+	void setupCallbacks(Awesome* a);
 	void popBackBuffer(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
 	void addToLog(Awesomium::WebView* caller, const Awesomium::JSArguments& args);
 
-  Console(char indentCharacter=' ');
-  ~Console();
+	Console(char indentCharacter=' ');
+	~Console();
 
-  Console& indent();
-  Console& outdent();
+	Console& indent();
+	Console& outdent();
 
-  Console& log(const char *string);
-  Console& debug(const char *string);
-  Console& warning(const char *string);
-  Console& error(const char *string);
-  Console& fatal(const char *string);
+	Console& log(const char *string);
+	Console& debug(const char *string);
+	Console& warning(const char *string);
+	Console& error(const char *string);
+	Console& fatal(const char *string);
 
-  Console& logf(const char *string, ...);
-  Console& debugf(const char *string, ...);
-  Console& warningf(const char *string, ...);
-  Console& errorf(const char *string, ...);
-  Console& fatalf(const char *string, ...);
+	Console& logf(const char *string, ...);
+	Console& debugf(const char *string, ...);
+	Console& warningf(const char *string, ...);
+	Console& errorf(const char *string, ...);
+	Console& fatalf(const char *string, ...);
 
-  Console& log(const std::string& string);
-  Console& debug(const std::string& string);
-  Console& warning(const std::string& string);
-  Console& error(const std::string& string);
-  Console& fatal(const std::string& string);
+	Console& log(const std::string& string);
+	Console& debug(const std::string& string);
+	Console& warning(const std::string& string);
+	Console& error(const std::string& string);
+	Console& fatal(const std::string& string);
 
-  Console& write(const int log_level, const std::string& log_class, const std::string& string);
+	Console& write(const int log_level, const std::string& log_class, const std::string& string);
 };
 
 extern Console console;

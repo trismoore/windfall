@@ -81,7 +81,7 @@ Awesome::Awesome(Config* config)
   vbo->create();
 
   shader = new Shader("awesome.shader");
-  shader->set("myTextureSampler",1); // we use unit 1
+  shader->seti("myTextureSampler",1); // we use unit 1
 //  textureSampler = shader->getUniformLocation("myTextureSampler");
   //glUniform1i(textureSampler, 0);
 
@@ -596,10 +596,12 @@ void Awesome::JSsaveStringToFile(Awesomium::WebView* caller, const Awesomium::JS
 		console.error("usage: saveStringToFile([string] filename, [string] stringToSave)"); return; }
 	std::wstring a0 = args[0].toString();
 	std::string filename = std::string(DATA_DIR) + std::string(a0.begin(), a0.end());
+	std::wstring str = args[1].toString();
+	console.debugf("Saving string (length=%d) to file %s", str.length(), filename.c_str());
 	FILE *fp = fopen(filename.c_str(),"wt");
 //printf("fopen(%s)\n",filename.c_str());
 	if (fp) { 
-		fprintf(fp, "%ls", args[1].toString().c_str());
+		fprintf(fp, "%ls", str.c_str());
 //printf("<< %ls\n", args[1].toString().c_str());
 		fclose(fp);
 	} else console.errorf("Can't open '%ls' to write to!",args[0].toString().c_str());
@@ -645,10 +647,18 @@ void Awesome::JSloadStringFromFile(Awesomium::WebView* caller, const Awesomium::
 				}
 			}
 		}
-//printf("lSFF< %s\nlSFF> %s\n", buf, out.c_str());
-//printf("Running %s(\"%s\");\n", func.c_str(), out.c_str());
-		runJSf("%s(\"%s\");", func.c_str(), out.c_str());
 		delete[] buf;
+
+		//console.debugf("Loaded string from %s, length %d.  Now running function %s(\"%s\");", filename.c_str(), out.length(), func.c_str(), out.c_str());
+		console.debugf("Loaded string from %s, length %d.  Now running function %s", filename.c_str(), out.length(), func.c_str());
+
+		std::string functionToRun = func;
+		functionToRun += "(\"";
+		functionToRun += out;
+		functionToRun += "\");";
+		runJS(functionToRun);
+	
+		//runJSf("%s(\"%s\");", func.c_str(), out.c_str());
 	} else console.errorf("Can't open '%ls' to read from!",args[0].toString().c_str());
 }
 

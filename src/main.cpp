@@ -6,6 +6,7 @@
 #include "camera.hpp"
 #include "landscape.hpp"
 #include "debugrenderer.hpp"
+#include "uihelper.hpp"
 
 double gTime, gdT;
 extern const char* g_versionString;
@@ -17,38 +18,42 @@ int main(int argc, char ** argv)
 	console.logf("Starting Windfall (%s)", g_versionString);
 	console.logf("- %s, %s -", __DATE__, __TIME__);
 
-	Config config;
+	Config *config = new Config();
 	console.log("Parsing configuration").indent();
 	console.debug("Setting default config").indent();
-	config.set("window.width","1024");
-	config.set("window.height","768");
-	config.set("window.fullscreen",0);
-	config.set("window.title", std::string("Windfall (") + g_versionString + ")");
-	console.outdent();
-	console.debug("Reading config from file").indent();
-	config.loadFile(DATA_DIR "/config");
+	config->set("window.width","1024");
+	config->set("window.height","768");
+	config->set("window.fullscreen",0);
+	config->set("window.title", std::string("Windfall (") + g_versionString + ")");
 	console.outdent();
 	console.debug("Getting command line overrides").indent();
-	config.parseArgs(argc,argv);
+	config->parseArgs(argc,argv);
+	console.outdent();
+	std::string configfile = config->getString("configfile", DATA_DIR "/config");
+	console.debugf("Reading config from file %s",configfile.c_str()).indent();
+	config->loadFile(configfile.c_str());
 	console.outdent();
 	console.outdent();
 
 	console.log("Starting OpenGL").indent();
 	ogl.init();
-	ogl.openWindow(&config);
+	ogl.openWindow(config);
 	console.outdent();
 
-	Landscape landscape(&config);
+	Landscape *landscape = new Landscape(config);
 
-	Awesome awesome(&config);
-	awesome.loadFile(config.getString("UI.html", "html/ui.html"));
+	Awesome * awesome = new Awesome(config);
+	awesome->loadFile(config->getString("UI.html", "html/ui.html"));
 
-	console.setupCallback(&awesome);
+	console.setupCallbacks(awesome);
 
-	Camera * camera = new Camera(&awesome);
+	UIHelper *uihelper = new UIHelper;
+	uihelper->setupCallbacks(awesome);
+
+	Camera * camera = new Camera(awesome);
 	g_camera = camera;
 
-	DebugRenderer debug(&config);
+	DebugRenderer *debug = new DebugRenderer(config);
 
 	console.log("Finished setup, entering loop...");
 	
@@ -69,11 +74,11 @@ int main(int argc, char ** argv)
 		//camera->look( glm::vec3(0.5,-0.5,0.6), glm::vec3(0.5,0.5,0.0));
 		camera->update();
 
-		landscape.render();
-		awesome.render();
+		landscape->render();
+		awesome->render();
 
 		// debug all texture units
-		debug.render();
+		debug->render();
 
 		timeEndFrame = glfwGetTime();
 		oneSecondTimer -= gdT;
@@ -90,6 +95,12 @@ int main(int argc, char ** argv)
 	}
 
 	console.log("...finished loop, shutting down").indent();
+	delete landscape;
+	delete awesome;
+	delete uihelper;
+	delete camera;
+	delete debug;
+	delete config;
 	ogl.closeWindow();
 	ogl.terminate();
 	console.outdent();

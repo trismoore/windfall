@@ -239,7 +239,8 @@ UI.addMenu({text: "Console"}, function() {
 	setTimeout(scrollToBottomOfConsoleSlow, 100);
 });
 
-consoleWindow.data("kendoWindow").maximize();
+if (UI.static.startConsoleMaximized)
+	consoleWindow.data("kendoWindow").maximize();
 
 if (UI.static.showConsole) {
 	$('#consoleWindow').data('kendoWindow').open();

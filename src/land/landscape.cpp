@@ -12,11 +12,12 @@ extern double gdT;
 
 Landscape::Landscape(Config* config)
 {
+	console.log("Landscape loading").indent();
+
 	cameraDragging = false;
 
-	console.log("Landscape loading").indent();
 	shader = new Shader("land.shader");
-	shader->set("heightScale", config->getFloat("land.heightScale",0.25f));
+	shader->setf("heightScale", config->getFloat("land.heightScale",0.25f));
 
 	vbo = new VBO();
 
@@ -96,7 +97,6 @@ Landscape::Landscape(Config* config)
 				addIndex(C - 3, r);
 				addIndex(C - 3, r + stride);
 				addIndex(C - 3 + shift, r + halfstride);
-if (lambda>5) console.logf("W%d+%d+%d E%d,%d,+%d,%d",r,halfstride,stride, r,stride,shift,halfstride);
 			}
 
 			for (int c = 1; c < C - 3; c += stride) {
@@ -108,9 +108,7 @@ if (lambda>5) console.logf("W%d+%d+%d E%d,%d,+%d,%d",r,halfstride,stride, r,stri
 				addIndex(c, R - 2);
 				addIndex(c + halfstride, R - 2);
 				addIndex(c + stride, R - 2);
-if (lambda>5) console.logf("N%d+%d+%d",c,stride,halfstride);
 			}
-console.logf("Stitching %d: r(1;%d-2;+=%d) c(1;%d-3;+=%d)", lambda,R,stride,C,stride);
 			console.logf("%d indices in stitch",numAdded);
 			vbo->pushIndices(index.size(), &index[0]);
 			indicesLocations[lambda].stitchOffset = offset;
@@ -188,7 +186,7 @@ console.logf("Stitching %d: r(1;%d-2;+=%d) c(1;%d-3;+=%d)", lambda,R,stride,C,st
 //  vbo->PushIndices(indices.size(), &indices[0]);
 	vbo->create();
 
-	console.outdent();
+	console.outdent(); // hex grid
 
 	console.log("Loading textures").indent();
 
@@ -197,24 +195,26 @@ console.logf("Stitching %d: r(1;%d-2;+=%d) c(1;%d-3;+=%d)", lambda,R,stride,C,st
 	texHeights->bind(2);
 	texHeights->wrapClamp();
 	texHeights->filterLinear();
-	shader->set("heightsSampler",2);
+	shader->seti("heightsSampler",2);
 
 	std::string groundtexture(config->getString("land.groundtexture","land/tex.dds"));
 	texGround = new Texture(groundtexture.c_str());
 	texGround->bind(3);
 	texGround->wrapClamp();
 	texGround->filterMipmap();
-	shader->set("groundSampler",3);
+	shader->seti("groundSampler",3);
 
 	std::string detailtexture(config->getString("land.detailtexture","land/detail.dds"));
 	texGroundDetail = new Texture(detailtexture.c_str());
 	texGroundDetail->bind(4);
 	texGroundDetail->wrapRepeat();
 	texGroundDetail->filterMipmap();
-	shader->set("groundDetail",4);
+	shader->seti("groundDetail",4);
 
 	logOpenGLErrors();
-	console.outdent();
+	console.outdent(); // textures
+
+	console.outdent(); // land
 }
 
 Landscape::~Landscape()

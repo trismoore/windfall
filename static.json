@@ -1,0 +1,1 @@
+{"showConsole":false,"autoExpandObjectsInConsole":true,"scrollOnEnter":true,"startConsoleMaximized":false,"autorun":["function (){console.log(\"Autorun!\");}"],"autostop":["function (){console.log(\"Autostop!\");}"]}

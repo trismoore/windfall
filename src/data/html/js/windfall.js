@@ -12,7 +12,7 @@ $(document).ready(function() {
 		UI.saveStringToFile = function(f,str) { 
 			alert("Not saving to file " + f + "\n" + str);
 		}
-		UI.modules = ["100console.js", "300camera.js"];
+		UI.modules = ["100console.js", "150useful.js", "300camera.js"];
 		camera = {};
 		camera.posx=camera.posy=camera.posz=1;
 		camera.lookx=camera.looky=camera.lookz=0;
@@ -23,6 +23,13 @@ $(document).ready(function() {
 	}
 
 	window.quit = function() {
+		if ('object' == typeof UI.static.autostop) {
+			console.log("Running autostop objects");
+			$.each(UI.static.autostop, function(k,v) {
+				if (typeof v == 'function') v.call();
+				else eval(v);
+			});
+		}
 		console.log("Saving static object to file");
 		saveStaticObject();
 		console.log("Quitting");
@@ -52,16 +59,6 @@ $(document).ready(function() {
 	});
 
 	UI.addMenu({text:"Quit"},function(){quit();});
-	UI.addMenu({text:"test"},function(){console.log("test passed.");});
-	UI.addMenu({
-		text: "Multi level menu test",
-		items: [
-			{ text: "item one" },
-			{ text: "<span style='color: blue'>item two</span>", encoded:false },
-			{ text: "item three" },
-			{ text: "item <b>four</b> <i>here</i>", encoded: false }
-		]
-	}, function(t) { console.log("multi level test, pressed: "+t); } );
 			
 
 	window.scrollbarSize = 0;
@@ -83,9 +80,14 @@ $(document).ready(function() {
 			UI.static = JSONfn.parse(s);
 			if (UI.static != undefined && UI.static.autorun != undefined && UI.static.autorun.length > 0) {
 				$.each(UI.static.autorun,function(k,v) {
-					console.log("Autorunning " + k + ", \"" + v.entityify() + "\"");
-					if (typeof v == 'function') v.call();
-					else window.eval(v);
+					if (typeof v == 'function') {
+						console.log("Autorunning " + k + ", \"" + v.toString() + "\"");
+						v.call();
+					}
+					else {
+						window.eval(v);
+						console.log("Autorunning " + k + ", \"" + v.entityify() + "\"");
+					}
 				});
 			}
 		} catch(e) {
@@ -98,6 +100,7 @@ $(document).ready(function() {
 	}
 
 	// load modules (this happens before autorun, incase we want to use one of the modules)
+	console.log("Loading modules");
 	UI.modules = UI.modules.sort();
 
 	// load the first in the array, wait for it, and then recurse
@@ -115,19 +118,27 @@ $(document).ready(function() {
 					loadModule(); // try next anyway
 				});
 		} else {
+			delete UI.modules;
 			onModulesFinished();
 		}
 	}
 	loadModule();
+
+	console.log("Modules loaded, loading static object");
 
 	// default values:
 	UI.static = {};
 	UI.static.showConsole = false;
 	UI.static.autoExpandObjectsInConsole = false;
 	UI.static.scrollOnEnter = true;
+	UI.static.startConsoleMaximized = false;
+	UI.static.autorun = [];
+	UI.static.autostop = [];
 
 	function onModulesFinished() {
 		// load static file and parse (this also executes all autorun objects)
 		UI.loadStringFromFile("static.json","loadStaticObject");
 	}
+
+	console.log("All done!");
 });

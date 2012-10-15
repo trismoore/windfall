@@ -23,7 +23,7 @@ DebugRenderer::DebugRenderer(Config* config)
   vbo->create();
 
   shader = new Shader("debug.shader");
-  shader->set("scale", 2.f / float(NUMBER_OF_UNITS));
+  shader->setf("scale", 2.f / float(NUMBER_OF_UNITS));
 
   console.outdent();
 }
@@ -39,8 +39,8 @@ void DebugRenderer::render()
 
   vbo->bind(shader);
   for (int i=START_UNIT; i<START_UNIT+NUMBER_OF_UNITS; ++i) {
-    shader->set("offX", 2.0f*float(i-START_UNIT)/float(NUMBER_OF_UNITS));
-    shader->set("myTextureSampler", i);
+    shader->setf("offX", 2.0f*float(i-START_UNIT)/float(NUMBER_OF_UNITS));
+    shader->seti("myTextureSampler", i);
     vbo->drawArrays(GL_TRIANGLE_STRIP);
   }
   logOpenGLErrors();

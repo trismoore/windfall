@@ -93,6 +93,7 @@ Console& Console::write(const int log_level, const std::string& log_class, const
   assert(log_level >= 0);
   assert(log_level <= 4);
   static char consoleChars[] = "#>!EF";
+  //std::cout << indentNumber << consoleChars[log_level] << " " << indentString << string << "\n";
   std::cout << consoleChars[log_level] << " " << indentString << string << "\n";
   std::string msg = "<li class='" + log_class + "'>" + string + "</li>";
   logFile << msg << "\n";
@@ -154,7 +155,7 @@ void Console::addToLog(Awesomium::WebView* caller, const Awesomium::JSArguments&
 	passLineToJS = passLineToJSTmp;
 }
 
-void Console::setupCallback(Awesome* a)
+void Console::setupCallbacks(Awesome* a)
 {
 	awesome = a;
 	awesome->registerCallbackFunction( L"UI", L"popBackBuffer", Awesomium::JSDelegate(this,&Console::popBackBuffer));

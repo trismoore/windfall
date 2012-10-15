@@ -1,0 +1,4 @@
+# a fullscreen 1920 x 1080 config
+window.width=1920
+window.height=1080
+window.fullscreen=1

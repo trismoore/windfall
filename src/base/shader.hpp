@@ -5,6 +5,7 @@
 #include <map>
 
 #include "ogl.hpp"
+#include "glm/glm.hpp"
 
 class Texture;
 class Camera;
@@ -38,6 +39,10 @@ public:
 
   void setf(const std::string& name, const float f);
   void seti(const std::string& name, const int i);
+  void set2f(const std::string& name, const float f1, const float f2);
+  void set3f(const std::string& name, const float *p);
+  void set3f(const std::string& name, const float f1, const float f2, const float f3);
+  void set3f(const std::string& name, const glm::vec3& v);
 
   // special case of setUniform: set the camera matrix
   void setCamera(Camera* camera); // set "VP" to camera ViewProjection matrix

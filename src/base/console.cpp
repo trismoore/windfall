@@ -49,8 +49,8 @@ Console& Console::indent()
   indentString[indentNumber]=indentChar;
   if (indentNumber<100) indentNumber++;
   indentString[indentNumber]='\0';
-  logFile << "<li><ul>\n";
-  if (useBackBuffer) backBuffer.push_back("<li><ul>");
+//  logFile << "<li><ul>\n";
+//  if (useBackBuffer) backBuffer.push_back("<li><ul>");
   return *this;
 }
 
@@ -59,8 +59,8 @@ Console& Console::outdent()
   if (indentNumber>0) indentNumber--;
   else console.errorf("Console can't outdent: %d", indentNumber);
   indentString[indentNumber]='\0';
-  logFile << "</ul></li>\n";
-  if (useBackBuffer) backBuffer.push_back("</li></ul>");
+//  logFile << "</ul></li>\n";
+//  if (useBackBuffer) backBuffer.push_back("</li></ul>");
   return *this;
 }
 
@@ -93,24 +93,33 @@ Console& Console::write(const int log_level, const std::string& log_class, const
   assert(log_level >= 0);
   assert(log_level <= 4);
   static char consoleChars[] = "#>!EF";
-  //std::cout << indentNumber << consoleChars[log_level] << " " << indentString << string << "\n";
-  std::cout << consoleChars[log_level] << " " << indentString << string << "\n";
-  std::string msg = "<li class='" + log_class + "'>" + string + "</li>";
+  char msg[1000];
+  sprintf(msg, "<li class='ind%d %s'>%s</li>", indentNumber, log_class.c_str(), string.c_str());
   logFile << msg << "\n";
   if (useBackBuffer) backBuffer.push_back(msg);
   if (passLineToJS) {
 	switch(log_level) {
+		case 0: awesome->runJSf("addToConsole(\"%s\",'info');",msg); break;
+		case 1: awesome->runJSf("addToConsole(\"%s\",'log');",msg); break;
+		case 2: awesome->runJSf("addToConsole(\"%s\",'warning');",msg); break;
+		case 3: awesome->runJSf("addToConsole(\"%s\",'error');",msg); break;
+/*
 		case 0: awesome->runJSf("console.info(\"%s\");",msg.c_str()); break;
 		case 1: awesome->runJSf("console.log(\"%s\");",msg.c_str()); break;
 		case 2: awesome->runJSf("console.warn(\"%s\");",msg.c_str()); break;
 		case 3: awesome->runJSf("console.error(\"%s\");",msg.c_str()); break;
+*/
 		default: throw "can't pass this error level to JS";
 	}
 /*	std::string l = "addToConsole(\"" + msg + "\");";
 //	  std::string l = "$('#consoleWindow ul.log').append(\"" + msg + "\"); \
 	    $(consoleWindow).animate({scrollTop: consoleWindow.scrollHeight}, 500);";
 	  awesome->runJS(l);*/
-  }
+  } 
+//else { // if we're passing it to JS, then it will come back again, so don't bother printing it ourselves.
+	  //std::cout << indentNumber << consoleChars[log_level] << " " << indentString << string << "\n";
+	  std::cout << consoleChars[log_level] << " " << indentString << string << "\n";
+  //}
   return *this;
 }
 
@@ -135,8 +144,8 @@ void Console::popBackBuffer(Awesomium::WebView* caller, const Awesomium::JSArgum
 
 void Console::addToLog(Awesomium::WebView* caller, const Awesomium::JSArguments& args)
 {
-	bool passLineToJSTmp = passLineToJS;
-	passLineToJS = false;
+//	bool passLineToJSTmp = passLineToJS;
+//	passLineToJS = false;
 	if (!args[0].isString()) warning("Console::addToLog called with non-string arg, expect useless output");
 	std::string m(args[0].toString().begin(),args[0].toString().end());
 	std::string t(args[1].toString().begin(),args[1].toString().end());
@@ -152,7 +161,7 @@ void Console::addToLog(Awesomium::WebView* caller, const Awesomium::JSArguments&
 		case 'e': write(3,"error",m); break;
 		default: write(0,"debug",std::string("Unknown message class: ")+t); write(0,"debug",m); break;
 	}
-	passLineToJS = passLineToJSTmp;
+//	passLineToJS = passLineToJSTmp;
 }
 
 void Console::setupCallbacks(Awesome* a)

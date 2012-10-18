@@ -6,6 +6,8 @@
 #include "useful.h"
 #include "camera.hpp"
 #include "texture.hpp"
+#include "qtree.hpp"
+#include "landpatch.hpp"
 
 extern Camera* g_camera;
 extern double gdT;
@@ -16,13 +18,10 @@ Landscape::Landscape(Config* config)
 
 	cameraDragging = false;
 
-	shader = new Shader("land.shader");
-	shader->setf("heightScale", config->getFloat("land.heightScale",0.25f));
-
 	vbo = new VBO();
 
-	numberOfLODLevels = config->getInt("land.lodlevels", 6);
-	int cC=config->getInt("land.columns",256), cR=config->getInt("land.rows",256);
+	numberOfLODLevels = config->getInt("land.lodlevels", 4);
+	int cC=config->getInt("land.columns",212), cR=config->getInt("land.rows",243);
 	int C=cC,R=cR;
 
 	if (numberOfLODLevels < 1) throw "Incorrect number of LOD levels! (must be >= 1)";
@@ -36,7 +35,7 @@ Landscape::Landscape(Config* config)
 
 	console.log("Making hexGrid for landscape").indent();
 
-	console.logf("Creating grid: %dx%d = %d vertices",R,C,R*C);
+	console.logf("Creating grid: %dx%d = %d vertices, %d triangles",R,C,R*C,(2*C-7)*(R-3));
 
 	// we only need XZ, height (Y) is read from the texture
 	float *gridXY = new float[R*C*2];
@@ -188,6 +187,9 @@ Landscape::Landscape(Config* config)
 
 	console.outdent(); // hex grid
 
+	shader = new Shader("land.shader");
+	shader->setf("heightScale", config->getFloat("land.heightScale",0.5f));
+
 	console.log("Loading textures").indent();
 
 	std::string heightmap(config->getString("land.heightmap","land/land.dds"));
@@ -214,15 +216,40 @@ Landscape::Landscape(Config* config)
 	logOpenGLErrors();
 	console.outdent(); // textures
 
+	console.log("Creating QTree").indent();
+
+	int numPatchesX = config->getInt("land.numPatchesX", 4);
+	int numPatchesZ = config->getInt("land.numPatchesZ", 4);
+
+	if (numPatchesX <= 0) { console.errorf("numPatchesX MUST be > 0"); throw "patch error"; }
+	if (numPatchesZ <= 0) { console.errorf("numPatchesZ MUST be > 0"); throw "patch error"; }
+	
+	qtreeRoot = new QTree(0,0,numPatchesX,numPatchesZ, 1,0);
+
+	LandPatch::vbo = vbo;
+	LandPatch::shader = new Shader("landpatch.shader");
+	LandPatch::shader->set2f("textureScale", 1.f/numPatchesX, 1.f/numPatchesZ);
+	LandPatch::shader->setf("heightScale", config->getFloat("land.heightScale",0.25f));
+	LandPatch::shader->seti("heightsSampler",2);
+	LandPatch::shader->seti("groundSampler",3);
+	LandPatch::shader->seti("groundDetail",4);
+
+	console.logf("Made landscape patches %dx%d (so scale is %f,%f)", numPatchesX, numPatchesZ, 1.f/numPatchesX, 1.f/numPatchesZ);
+
+	console.outdent();
+
+	console.log("Landscape finished");
 	console.outdent(); // land
 }
 
 Landscape::~Landscape()
 {
 	console.log("Landscape closing");
+	delete qtreeRoot;
 	delete shader;
 	delete vbo;
 	delete texHeights;
+	delete LandPatch::shader;
 }
 
 void Landscape::onMouseButton(int button, int action)
@@ -282,9 +309,8 @@ void Landscape::render()
 		glDisable(GL_CULL_FACE);
 	}
 
-	//vbo->drawArrays(GL_POINTS);
-
-	
+//	vbo->drawArrays(GL_POINTS);
+	/*
 	vbo->drawElements(GL_TRIANGLES,
                           indicesLocations[l].stitchCount,
                           indicesLocations[l].stitchOffset);
@@ -292,6 +318,11 @@ void Landscape::render()
 	vbo->drawElements(GL_TRIANGLE_STRIP,
                           indicesLocations[l].stripCount,
                           indicesLocations[l].stripOffset);
+*/
+	qtreeRoot->debugRender();
+	LandPatch::shader->setCamera(g_camera);
+	LandPatch::vbo->bind(LandPatch::shader);
+	qtreeRoot->render();
 
 	if (wireframe) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

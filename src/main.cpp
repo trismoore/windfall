@@ -29,7 +29,7 @@ int main(int argc, char ** argv)
 	console.debug("Getting command line overrides").indent();
 	config->parseArgs(argc,argv);
 	console.outdent();
-	std::string configfile = config->getString("configfile", DATA_DIR "/config");
+	std::string configfile = DATA_DIR + config->getString("configfile", "config");
 	console.debugf("Reading config from file %s",configfile.c_str()).indent();
 	config->loadFile(configfile.c_str());
 	console.outdent();
@@ -40,22 +40,83 @@ int main(int argc, char ** argv)
 	ogl.openWindow(config);
 	console.outdent();
 
-	Landscape *landscape = new Landscape(config);
-
 	Awesome * awesome = new Awesome(config);
 	awesome->loadFile(config->getString("UI.html", "html/ui.html"));
-
 	console.setupCallbacks(awesome);
 
 	UIHelper *uihelper = new UIHelper;
 	uihelper->setupCallbacks(awesome);
 
-	Camera * camera = new Camera(awesome);
-	g_camera = camera;
+	console.outdent();
+	console.log("Looping until UI calls UI.loaded()");
+	console.indent();
+	while (OGL::isRunning() && g_loadingState==LOADING_STATE_UI_LOADING) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		awesome->render();
+		glfwSwapBuffers();
+	}
 
-	DebugRenderer *debug = new DebugRenderer(config);
+	Landscape* landscape;
+	Camera * camera;
+	DebugRenderer *debug;
 
+	int component = 0;
+	float loadedAmount = 0;
+	std::string loadingComponent = "Engine";
+
+	console.outdent();
+	console.log("UI loaded, looping and loading engine components");
+	console.indent();
+
+	while (OGL::isRunning() && g_loadingState==LOADING_STATE_ENGINE_LOADING) {
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		awesome->render();
+	
+		awesome->runJSf("loadingTextAndFraction('%s', %f);", loadingComponent.c_str(), loadedAmount);
+		if (loadedAmount >= 1) {	
+			++component;
+			loadedAmount = 0;
+		}
+		switch (component) {
+			case 0:
+				loadingComponent="Landscape";
+				landscape = new Landscape(config);
+				loadedAmount = 1;
+				break;
+			case 1:
+				// load a bit of landscape
+				loadedAmount += 0.03;
+				//loadedAmount = 1;
+				break;
+			case 2:
+				loadingComponent="Camera";
+				camera = new Camera(awesome);
+				g_camera = camera;
+				loadedAmount = 1;
+				break;
+			case 3: loadedAmount += 0.1;
+				//loadedAmount = 1;
+				break;
+			case 4:
+				loadingComponent="DebugRenderer";
+				debug = new DebugRenderer(config);
+				loadedAmount = 1;
+				break;
+			case 5: loadedAmount += 0.02;
+				//loadedAmount = 1;
+				break;
+			default:
+				g_loadingState = LOADING_STATE_READY;
+				awesome->runJS("onEngineFinishedLoading();");
+				break;
+		}
+
+		glfwSwapBuffers();
+	}
+
+	console.outdent();
 	console.log("Finished setup, entering loop...");
+	console.indent();
 	
 	gTime = glfwGetTime();
 	double timeLastFrame = gTime;
@@ -86,7 +147,8 @@ int main(int argc, char ** argv)
 		if (oneSecondTimer < 0) {
 			oneSecondTimer = 1.0;
 			//      awesome.runJSf("UI.message('<strong>%d</strong> last second, [last frame <i>dTime</i>=%.3fms (%.1f fps), <i>actual</i> = %.3fms (<strong>%.1f</strong> fps)]; AwesomeLastSec=%d');",
-			//		     frames, 1000.f*gdT, 1.f/gdT, 1000.f*(timeEndFrame-gTime), 1.f/(timeEndFrame-gTime), Awesome::updatesLastSecond);
+//			printf("%d last second, [last dTime=%.3fms (%.1f fps), actual = %.3fms (%.1f fps)]; AwesomeLastSec=%d');\n",
+//			           frames, 1000.f*gdT, 1.f/gdT, 1000.f*(timeEndFrame-gTime), 1.f/(timeEndFrame-gTime), Awesome::updatesLastSecond);
 			Awesome::updatesLastSecond = 0;
 			frames=0;
 		}

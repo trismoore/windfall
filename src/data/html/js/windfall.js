@@ -1,5 +1,8 @@
 $(document).ready(function() {
 
+	window.loadingText = function(t) { $('#loadingText').html("Loading <i>"+t+"</i>"); };
+	window.loadingTextAndFraction = function(t,f) { var f100=f*100; loadingText(t); $('#loadingBar').css({borderLeftWidth:f100+"px",width:100-f100}); }
+
 	window.runningInBrowser = "undefined" == typeof(UI);
 
 	if (runningInBrowser) {
@@ -93,6 +96,7 @@ $(document).ready(function() {
 		} catch(e) {
 			console.error("Uncaught error trying to load UI.static: " + e);
 		}
+		onStaticObjectFinished();
 	}
 
 	window.saveStaticObject = function() {
@@ -107,6 +111,7 @@ $(document).ready(function() {
 	function loadModule() {
 		if (UI.modules.length > 0) {
 			var m = "modules/" + UI.modules.shift();
+			loadingText(m);
 			$.getScript(m)
 				.done(function(script, textStatus) {
 					console.log(m + " loaded OK: " + textStatus);
@@ -125,6 +130,7 @@ $(document).ready(function() {
 	loadModule();
 
 	console.log("Modules loaded, loading static object");
+	loadingText("static object");
 
 	// default values:
 	UI.static = {};
@@ -140,5 +146,15 @@ $(document).ready(function() {
 		UI.loadStringFromFile("static.json","loadStaticObject");
 	}
 
-	console.log("All done!");
+	function onStaticObjectFinished() {
+		console.log("UI all done!");
+		loadingText("engine");
+		UI.loaded(); // signal engine that it can go ahead with it's loading
+	}
+
+	window.onEngineFinishedLoading = function() {
+		$('#loading').fadeOut();
+	}
+
+	// due to the nature of javascript asynchronisity, code here will be executed BEFORE modules have finished (and before static and autorun etc)
 });

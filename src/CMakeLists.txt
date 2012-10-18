@@ -80,7 +80,7 @@ set(MODULES
  base
  land
  debugrenderer
-# windfall
+ windfall
 )
 
 # include them first, so the others can use them

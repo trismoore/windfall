@@ -17,8 +17,8 @@ Camera::Camera(Awesome* awesome) : awesome(awesome)
 	lookUp = glm::normalize(glm::vec3(0.f,1.f,0.f));
 	
 	fov = 60;
-	nearP =   0.01;
-	farP =   10.0;
+	nearP =    0.01;
+	farP =   200.0;
 
 	awesome->createObject(L"camera");
 	awesome->registerCallbackFunction( L"camera", L"setPos", Awesomium::JSDelegate(this, &Camera::JSsetPos));

@@ -68,29 +68,21 @@ code {
 ul.log li { list-style: none; }
 ul.log { padding-left: 0; }
 ul.log ul { padding-left: 1em; }
-li.log {
- color: #ddd;
-}
+li.log {  color: #ddd; }
+li.debug {  color: #cba; }
+li.warning {  color: #ee2;  font-size: 110%; }
+li.error {  color: #e11;  font-size: 130%; }
+li.fatal {  background: #d00;  color: #000;  font-size: 200%; }
 
-li.debug {
- color: #cba;
-}
-
-li.warning {
- color: #ee2;
- font-size: 110%;
-}
-
-li.error {
- color: #e11;
- font-size: 130%;
-}
-
-li.fatal {
- background: #d00;
- color: #000;
- font-size: 200%;
-}
+ul.log li.ind1 { margin-left: 1em; }
+ul.log li.ind2 { margin-left: 2em; }
+ul.log li.ind3 { margin-left: 3em; }
+ul.log li.ind4 { margin-left: 4em; }
+ul.log li.ind5 { margin-left: 5em; }
+ul.log li.ind6 { margin-left: 6em; }
+ul.log li.ind7 { margin-left: 7em; }
+ul.log li.ind8 { margin-left: 8em; }
+ul.log li.ind9 { margin-left: 9em; }
 
 pre {
 	margin: 0.2em 0;
@@ -147,3 +139,53 @@ pre {
 .hl-object { color: #cde; }
 
 .k-window { background: rgba(61,61,61,0.6) !important; }
+
+div#loading { 
+	position:absolute; left:0;right:0;top:0;bottom:0;  /* cover whole screen */
+	background: black; color: white; 
+	padding: 5% 0; 
+	font-size: 150%; text-align: center;
+	z-index: 999999;
+}
+div#loading > div { padding: 10% 0; }
+div#loading #loadingBar { position:absolute;margin-top:1em;height:2px;left:50%;margin-left:-50px;width:100px;border-left:0px solid #fff; background:#444; }
+
+/* real cool spinner thingy in CSS: http://37signals.com/svn/posts/2577-loading-spinner-animation-using-css-and-webkit */
+div.spinner {
+	position: relative;
+	width: 54px;
+	height: 54px;
+	display: inline-block;
+}
+
+div.spinner div {
+	width: 12%;
+	height: 26%;
+	background: #36a;
+	position: absolute;
+	left: 44.5%;
+	top: 37%;
+	opacity: 0;
+	 -webkit-animation: fade 1s linear infinite;
+	 -webkit-border-radius: 50px;
+	 -webkit-box-shadow: 0 0 3px rgba(0,0,0,0.2);
+}
+
+div.spinner div.bar1 {-webkit-transform:rotate(0deg) translate(0, -142%); -webkit-animation-delay: 0s;}    
+div.spinner div.bar2 {-webkit-transform:rotate(30deg) translate(0, -142%); -webkit-animation-delay: -0.9167s;}
+div.spinner div.bar3 {-webkit-transform:rotate(60deg) translate(0, -142%); -webkit-animation-delay: -0.833s;}
+div.spinner div.bar4 {-webkit-transform:rotate(90deg) translate(0, -142%); -webkit-animation-delay: -0.75s;}
+div.spinner div.bar5 {-webkit-transform:rotate(120deg) translate(0, -142%); -webkit-animation-delay: -0.667s;}
+div.spinner div.bar6 {-webkit-transform:rotate(150deg) translate(0, -142%); -webkit-animation-delay: -0.5833s;}
+div.spinner div.bar7 {-webkit-transform:rotate(180deg) translate(0, -142%); -webkit-animation-delay: -0.5s;}
+div.spinner div.bar8 {-webkit-transform:rotate(210deg) translate(0, -142%); -webkit-animation-delay: -0.41667s;}
+div.spinner div.bar9 {-webkit-transform:rotate(240deg) translate(0, -142%); -webkit-animation-delay: -0.333s;}
+div.spinner div.bar10 {-webkit-transform:rotate(270deg) translate(0, -142%); -webkit-animation-delay: -0.25s;}
+div.spinner div.bar11 {-webkit-transform:rotate(300deg) translate(0, -142%); -webkit-animation-delay: -0.1667s;}
+div.spinner div.bar12 {-webkit-transform:rotate(330deg) translate(0, -142%); -webkit-animation-delay: -0.0833s;}
+
+@-webkit-keyframes fade {
+	from {opacity: 1;}
+	to {opacity: 0.25;}
+}
+

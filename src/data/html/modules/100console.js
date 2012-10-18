@@ -134,46 +134,8 @@ window.addToConsoleAndLog = function(m,c) {
 	if (typeof m != 'string') 
 		m = syntaxSpan(m);
 	UI.addToLog(m,c);   // send it back to the engine, so we can log it
-	addToConsole(m,c);
+//	addToConsole(m,c); // we can't add to console ourselves anymore, it goes through the UI to get the correct indent level
 };
-
-// Hijack javascript console to also print to ours
-(function(){
-	function splitArgumentsAndSyntaxSpan(message) {
-		if (arguments.length > 1) {
-			var t="";
-			for (var i=0; i<arguments.length; ++i)
-				t+=syntaxSpan(arguments[i]) + (i<arguments.length-1 ? ", " : "");
-			return t;
-		} else {
-		// strings should be left as-is, not quoted
-			if (typeof message != 'string')
-				return syntaxSpan(message);
-			else return message;
-		}
-	}
-
-	console.oldLog = console.log;
-	console.log = function (message) {
-		addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"log");
-		console.oldLog.apply(console, arguments);
-	};
-	console.oldError = console.error;
-	console.error = function(message) {
-		 addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"error");
-		 console.oldError.apply(console, arguments);
-	};
-	console.oldWarn = console.warn;
-	console.warn = function(message) {
-		 addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"warning");
-		 console.oldWarn.apply(console, arguments);
-	};
-	console.oldInfo = console.info;
-	console.info = function(message) {
-		 addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"debug");
-		 console.oldInfo.apply(console, arguments);
-	};
-})();
 
 console.setVerbosity = function(v) {
 	if (typeof v != 'number' || v < 0 || v > 3) { console.error("Console Verbosity must be between 0 and 3!"); return; }
@@ -218,20 +180,6 @@ $('#consoleInputBar input').keyup(function(e) {
 	}
 });
 
-// if we're running in the engine, grab all saved console messages and display them
-// (the engine saves all messages while we're loading)
-if (runningInBrowser) {
-	console.log("We're running in a browser, adding some dummy text here...");
-	for (var i=0;i<10;++i) console.log("blah " + i);
-	console.info("eg info");
-	console.log("eg log");
-	console.warn("eg Warning!");
-	console.error("eg Error!!!");
-	console.log("See also <a href='../../windfall_log.html'>log file</a>");
-} else {
-	UI.popBackBuffer();
-}
-
 UI.history = function() { console.log(UI.consoleInputBuffer); }
 
 UI.addMenu({text: "Console"}, function() {
@@ -246,3 +194,56 @@ if (UI.static.showConsole) {
 	$('#consoleWindow').data('kendoWindow').open();
 	setTimeout(scrollToBottomOfConsoleSlow, 100);
 }
+
+// if we're running in the engine, grab all saved console messages and display them
+// (the engine saves all messages while we're loading)
+if (runningInBrowser) {
+	console.log("We're running in a browser, adding some dummy text here...");
+	for (var i=0;i<10;++i) console.log("blah " + i);
+	console.info("eg info");
+	console.log("eg log");
+	console.warn("eg Warning!");
+	console.error("eg Error!!!");
+	console.log("See also <a href='../../windfall_log.html'>log file</a>");
+} else {
+	UI.popBackBuffer();
+}
+
+// Hijack javascript console to also print to ours
+//(function(){
+	function splitArgumentsAndSyntaxSpan(message) {
+		if (arguments.length > 1) {
+			var t="";
+			for (var i=0; i<arguments.length; ++i)
+				t+=syntaxSpan(arguments[i]) + (i<arguments.length-1 ? ", " : "");
+			return t;
+		} else {
+		// strings should be left as-is, not quoted
+			if (typeof message != 'string')
+				return syntaxSpan(message);
+			else return message;
+		}
+	}
+
+	console.oldLog = console.log;
+	console.log = function (message) {
+		addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"log");
+		console.oldLog.apply(console, arguments);
+	};
+	console.oldError = console.error;
+	console.error = function(message) {
+		 addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"error");
+		 console.oldError.apply(console, arguments);
+	};
+	console.oldWarn = console.warn;
+	console.warn = function(message) {
+		 addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"warning");
+		 console.oldWarn.apply(console, arguments);
+	};
+	console.oldInfo = console.info;
+	console.info = function(message) {
+		 addToConsoleAndLog(splitArgumentsAndSyntaxSpan.apply(console,arguments),"debug");
+		 console.oldInfo.apply(console, arguments);
+	};
+//})();
+

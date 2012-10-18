@@ -2,6 +2,8 @@
 #include "console.hpp"
 #include "shader.hpp"
 
+int g_loadingState = LOADING_STATE_UI_LOADING;
+
 UIHelper::UIHelper()
 {
 
@@ -41,10 +43,16 @@ AWESOME_FUNC(UIHelper::JSshaders_setUniform1f)
 	Shader::setf(name,attr,args[2].toDouble());
 }
 
+AWESOME_FUNC(UIHelper::JSui_loaded)
+{
+	g_loadingState = LOADING_STATE_ENGINE_LOADING;
+}
+
 void UIHelper::setupCallbacks(Awesome* awesome)
 {
 	awesome->registerCallbackFunction( L"shaders", L"list", Awesomium::JSDelegate(this, &UIHelper::JSshaders_list));
 	awesome->registerCallbackFunction( L"shaders", L"setUniform1i", Awesomium::JSDelegate(this, &UIHelper::JSshaders_setUniform1i));
 	awesome->registerCallbackFunction( L"shaders", L"setUniform1f", Awesomium::JSDelegate(this, &UIHelper::JSshaders_setUniform1f));
+	awesome->registerCallbackFunction( L"UI", L"loaded", Awesomium::JSDelegate(this, &UIHelper::JSui_loaded));
 }
 

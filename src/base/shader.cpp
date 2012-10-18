@@ -61,7 +61,7 @@ void Shader::getFile(std::string& source, const std::string &file)
 	int lineNumber = 0;
 	std::ifstream f;
 	f.open(filename.c_str());
-	if (f.fail()) { console.errorf("Can't open shader file!"); return; }
+	if (f.fail()) { console.errorf("Can't open shader file '%s'!", filename.c_str()); return; }
 
 	std::string tmp, line;
 	while (std::getline(f,tmp)) {
@@ -73,24 +73,26 @@ void Shader::getFile(std::string& source, const std::string &file)
 		// this is NOT an official preprocessor directive.
 		if (line.substr(0,8).compare(":include") == 0) {
 			char temp[1000];
-			sprintf(temp,"/* %s -------------------------------------------- */", line.c_str());
+			sprintf(temp,"/* %s -------------------------------------------- */\n", line.c_str());
 			source += temp;
+//printf("--> %s\n", line.c_str());
 			console.indent();
 			getFile(source, substr(line,9,0));
 			console.outdent();
-			sprintf(temp,"/* ------------ end of %s ------------------------ */", line.c_str());
+			sprintf(temp,"/* ------------ end of %s ------------------------ */\n", line.c_str());
 			source += temp;
-			continue;
+//printf("^ %s\n", line.c_str());
+		} else {
+			if (substr(line,-1).compare(":") != 0 && line[0]!='#') { // not a special line (of the sort "vertex:" or #version) - prepend #line tag
+				char temp[1000];
+				sprintf(temp, "#line %d %d\n", lineNumber, fileNumber);
+				source += temp;
+//printf("%s", temp);
+			}
+			source += line;
+//printf("%s\n", line.c_str());
+			source += '\n';
 		}
-		if (substr(line,-1).compare(":") != 0 && line[0]!='#') { // not a special line (of the sort "vertex:" or #version) - prepend #line tag
-			char temp[1000];
-			sprintf(temp, "#line %d %d\n", lineNumber, fileNumber);
-			source += temp;
-			//printf("%s", temp);
-		}
-		source += line;
-		//printf("%s\n", line.c_str());
-		source += '\n';
 	}
 	f.close();
 }
@@ -106,6 +108,7 @@ void Shader::load(const std::string &file)
 // read string, parse into vert/frag and then compile each section & link
 void Shader::loadSource(const std::string& shadername, const std::string &source)
 {
+//std::cout << "Shader::loadSource " << shadername << ": \n" << source << " ---- \n";
 	name = shadername;
 	uniform_cache.clear();
 
@@ -138,7 +141,20 @@ void Shader::loadSource(const std::string& shadername, const std::string &source
 	GLint result = GL_FALSE;
 	glGetProgramiv(program, GL_LINK_STATUS, &result);
 
-	if (!result) { printErrors(program); throw "boo!"; }
+	if (!result) { 
+		printErrors(program);
+		std::string shadersToOutput[3] = { "global", "vertex", "fragment" };
+		for (int i=0; i<3; ++i) {
+			console.logf("--- %s shader ---", shadersToOutput[i].c_str());
+			std::stringstream s(shaders[shadersToOutput[i]]);
+			std::string line;
+			while (std::getline(s,line)) {
+				console.logf("%s", line.c_str());
+			}
+		}
+		throw "Shader didn't compile, stopping now.";
+	}
+
 	logOpenGLErrors();
 }
 
@@ -165,7 +181,7 @@ GLint Shader::getUniformLocation(const std::string& name)
 		use();
 		GLuint l = glGetUniformLocation(program, name.c_str());
 		uniform_cache[name] = l;
-		console.logf("Program %d UniformLocation for %s: not cached %d", program, name.c_str(), l);
+		console.logf("Program '%s' (%d) UniformLocation for %s: not cached %d", this->name.c_str(), program, name.c_str(), l);
 		logOpenGLErrors();
 		return l;
 	}
@@ -182,7 +198,7 @@ GLint Shader::getAttribLocation(const std::string& name)
 		use();
 		GLuint l = glGetAttribLocation(program, name.c_str());
 		attribute_cache[name] = l;
-		console.logf("Program %d AttribLocation for %s: not cached %d", program, name.c_str(), l);
+		console.logf("Program '%s' (%d) AttribLocation for %s: not cached %d", this->name.c_str(), program, name.c_str(), l);
 		logOpenGLErrors();
 		return l;
 	}
@@ -214,7 +230,7 @@ void Shader::printErrors(GLuint ID)
 		int colonPos = i.find(":");
 		precolon = substr(i,0,colonPos);
 		error = substr(i,colonPos+2,0);
-		int fileNumber, lineNumber;
+		int fileNumber=0, lineNumber=0;
 		sscanf(precolon.c_str(), "%d(%d)", &fileNumber, &lineNumber);
 		std::string filename;
 		if (fileNumber > 0) filename=filenames[fileNumber-1];
@@ -244,6 +260,26 @@ void Shader::setf(const std::string& name, const float f)
 {
 	//console.debugf("Shader::setf %d,%s=%f",program,name.c_str(),f);
 	glUniform1f(getUniformLocation(name), f);
+}
+
+void Shader::set2f(const std::string& name, const float f1, const float f2)
+{
+	glUniform2f(getUniformLocation(name), f1, f2);
+}
+
+void Shader::set3f(const std::string& name, const float f1, const float f2, const float f3)
+{
+	glUniform3f(getUniformLocation(name), f1,f2,f3);
+}
+
+void Shader::set3f(const std::string& name, const float *p)
+{
+	set3f(name,p[0],p[1],p[2]);
+}
+
+void Shader::set3f(const std::string& name, const glm::vec3& v)
+{
+	set3f(name, v.x,v.y,v.z);
 }
 
 Shader* Shader::findShader(const std::string& shaderName) {

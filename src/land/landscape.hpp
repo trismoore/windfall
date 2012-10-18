@@ -17,6 +17,7 @@ class Shader;
 class Texture;
 class VBO;
 class Config;
+class QTree;
 
 class Landscape : public Renderer {
 
@@ -31,6 +32,8 @@ class Landscape : public Renderer {
 	bool cameraDragging;
 	int cameraMouseX, cameraMouseY;
 	int numberOfLODLevels;
+
+	QTree * qtreeRoot;
 
 public:
 

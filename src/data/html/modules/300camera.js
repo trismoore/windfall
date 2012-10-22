@@ -62,12 +62,14 @@ window.moveCamera = function(x,y,z, lookx,looky,lookz, upx,upy,upz, fov, duratio
   var camUX=camera.upx,camUY=camera.upy,camUZ=camera.upz;
   var camFOV=camera.fov;
 
+  x*=landscape.numPatchesX; y*=landscape.heightScale; z*=landscape.numPatchesZ;
+
   $('#cameraWindow #movement')
 	.stop()
 	.css({left:"0px"})
 	.animate({left:1000},{duration:duration,easing:easing,step:function(f) {
 		var t=f/1000.0;
-		camera.setPos( camOX+(x-camOX)*t, camOY+(y-camOY)*t, camOZ+(z-camOZ)*t );
+		camera.setPos( (camOX+(x-camOX)*t), (camOY+(y-camOY)*t), (camOZ+(z-camOZ)*t));
 		camera.setLook(camLX+(lookx-camLX)*t, camLY+(looky-camLY)*t, camLZ+(lookz-camLZ)*t );
 		camera.setUp(camUX+(upx-camUX)*t, camUY+(upy-camUY)*t, camUZ+(upz-camUZ)*t );
 		camera.setFOV( camFOV+(fov-camFOV)*t );
@@ -75,18 +77,21 @@ window.moveCamera = function(x,y,z, lookx,looky,lookz, upx,upy,upz, fov, duratio
 };
 
 var buttons = {
-	AboveAndWide: "moveCamera(+0.650,+0.490,+0.393, -0.404,-0.866,+0.294, -0.577,+0.613,+0.538, 100, 3000, 'easeOutElastic');",
-	InDipWideish: "moveCamera(+0.612,+0.171,+0.861, -0.300,-0.590,-0.750, +0.000,+1.000,+0.000,  70, 3000, 'easeInOutQuart');",
-	OnHillTele:   "moveCamera(+0.342,+0.282,+0.725, +0.772,-0.250,-0.584, -0.307,+0.901,+0.291,  20, 3000, 'easeInOutQuart');",
-	UpsideTele:   "moveCamera(+0.867,+0.359,+0.887, -0.364,-0.164,-0.917, -0.241,-0.881,+0.406,   5, 3000, 'easeInOutQuart');",
-	NausiaInducinglyWide: "moveCamera(+0.339,+0.163,+0.342, +0.425,-0.885,+0.194, +0.340,+0.894,+0.292, 145, 3000, 'easeInOutQuart');",
-	Patches56Overview: "moveCamera(+4.471,+3.043,+5.687, -0.220,-0.702,-0.677, -0.212,+0.802,-0.556,  72, 3000, 'easeInOutQuart');",
-	At200: "moveCamera(+199.618,+2.199,+199.751, -1.213,-0.220,-1.217, +0.330,+0.883,+0.333,  87, 3000, 'easeInOutQuart');",
-	Overview: "moveCamera(-1.130,+7.750,-1.266, +0.573,-0.698,+0.429, +0.470,+0.807,+0.358,  90, 3000, 'easeInOutQuart');",
+ AboveAndWideElastic: "moveCamera(+0.5  ,+2.5  ,+0.5  , +0.1  ,-1.   ,+0.1  , +0.976,+0.201,+0.065,  60, 5000, 'easeOutElastic');",
+             DipWide: "moveCamera(+0.338,+0.415,+0.281, +0.325,-0.246,+0.913, +0.034,+0.993,+0.101, 109, 3000, 'easeInOutQuart');",
+           Telephoto: "moveCamera(+0.876,+1.126,+0.916, -0.708,-0.260,-0.658, -0.089,+0.991,-0.082,   6, 3000, 'easeInOutQuart');",
+            Overview: "moveCamera(+0.108,+2.491,+0.064, +0.549,-1.330,+0.648, +0.334,+0.856,+0.394,  90, 3000, 'easeInOutQuart');",
+               Circ1: "moveCamera(+0.804,+0.918,+0.746, -0.863,-0.495,-0.103, -0.363,+0.930,-0.056,  76, 3000, 'easeInOutQuart');",
+               Circ2: "moveCamera(+0.901,+1.055,+0.393, -0.686,-0.551,+0.475, -0.349,+0.904,+0.247,  76, 3000, 'easeInOutQuart');",
+               Circ3: "moveCamera(+0.632,+1.076,+0.143, +0.059,-0.582,+0.811, +0.020,+0.887,+0.461,  76, 3000, 'easeInOutQuart');",
+               Circ4: "moveCamera(-0.033,+0.874,+0.088, +0.811,-0.513,+0.281, +0.366,+0.922,+0.124,  76, 3000, 'easeInOutQuart');",
 };
 function addButton(text, strToEval) {
 	$('<button class="k-button">'+text+'</button>').click(function(){eval(strToEval);}).appendTo('#cameraWindow');
 };
-addButton("Output Position", "console.log(sprintf(\"moveCamera(%+0.3f,%+0.3f,%+0.3f, %+0.3f,%+0.3f,%+0.3f, %+0.3f,%+0.3f,%+0.3f, %3d, 3000, 'easeInOutQuart');\", camera.posx,camera.posy,camera.posz, camera.lookx,camera.looky,camera.lookz, camera.upx,camera.upy,camera.upz, camera.fov));");
+addButton("Output Position", "console.log(sprintf(\"moveCamera(%+0.3f,%+0.3f,%+0.3f, %+0.3f,%+0.3f,%+0.3f, %+0.3f,%+0.3f,%+0.3f, %3d, 3000, 'easeInOutQuart');\", "
+  + "camera.posx/landscape.numPatchesX,camera.posy/landscape.heightScale,camera.posz/landscape.numPatchesZ, camera.lookx,camera.looky,camera.lookz, camera.upx,camera.upy,camera.upz, camera.fov));");
 $('#cameraWindow').append('<hr/>');
 $.each(buttons, function(k,v) { addButton(k,v); });
+
+window.cameraGoToStartPosition = function() { eval(buttons.Overview); }

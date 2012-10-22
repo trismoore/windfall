@@ -4,12 +4,11 @@ vertex:
 
 	uniform mat4 VP;
 
-	uniform float startX, startZ, sizeX, sizeZ;
+	uniform vec3 bbMin, bbMax;
 
 	void main() {
-		vec3 pos = vec3(startX+vertex.x*sizeX,
-		                       vertex.y,
-		                startZ+vertex.z*sizeZ);
+		vec3 size = bbMax - bbMin;
+		vec3 pos = bbMin + vertex * size;
 
 		gl_Position = VP * vec4(pos,1); // object->world
 	}

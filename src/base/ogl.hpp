@@ -14,9 +14,8 @@ extern bool _logOpenGLErrors(const char *function, const char *file, const int l
 class Config;
 
 class OGL {
-private:
-	static bool running;
 public:
+	static bool running;
 
   OGL();
   ~OGL();

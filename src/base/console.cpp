@@ -171,3 +171,11 @@ void Console::setupCallbacks(Awesome* a)
 	awesome->registerCallbackFunction( L"UI", L"addToLog", Awesomium::JSDelegate(this, &Console::addToLog));
 }
 
+void Console::throwOut(const std::string &s)
+{
+	console.error(s);
+	console.outdent();
+	logFile.close();
+	throw s;
+}
+

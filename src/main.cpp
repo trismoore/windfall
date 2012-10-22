@@ -70,39 +70,42 @@ int main(int argc, char ** argv)
 
 	while (OGL::isRunning() && g_loadingState==LOADING_STATE_ENGINE_LOADING) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		awesome->render();
-	
-		awesome->runJSf("loadingTextAndFraction('%s', %f);", loadingComponent.c_str(), loadedAmount);
+
 		if (loadedAmount >= 1) {	
 			++component;
 			loadedAmount = 0;
 		}
+		awesome->runJSf("loadingTextAndFraction('%s', %f);", loadingComponent.c_str(), loadedAmount);
+
+		awesome->render();
+		awesome->render();
+		awesome->render(); // plenty of time to alter UI
+	
 		switch (component) {
 			case 0:
-				loadingComponent="Landscape";
-				landscape = new Landscape(config);
-				loadedAmount = 1;
-				break;
-			case 1:
-				// load a bit of landscape
-				loadedAmount += 0.03;
-				//loadedAmount = 1;
-				break;
-			case 2:
 				loadingComponent="Camera";
 				camera = new Camera(awesome);
 				g_camera = camera;
 				loadedAmount = 1;
 				break;
-			case 3: loadedAmount += 0.1;
+			case 1: loadedAmount += 0.1;
 				//loadedAmount = 1;
+				break;
+			case 2:
+				loadingComponent="Landscape";
+				landscape = new Landscape(config, awesome);
+				loadedAmount = 1;
+				break;
+			case 3:
+				// load a bit of landscape
+				loadedAmount = landscape->load();
 				break;
 			case 4:
 				loadingComponent="DebugRenderer";
 				debug = new DebugRenderer(config);
 				loadedAmount = 1;
 				break;
-			case 5: loadedAmount += 0.02;
+			case 5: loadedAmount += 0.2;
 				//loadedAmount = 1;
 				break;
 			default:
@@ -112,6 +115,7 @@ int main(int argc, char ** argv)
 		}
 
 		glfwSwapBuffers();
+		glfwSwapBuffers(); // make sure any UI progress is displayed (not double-buffered)
 	}
 
 	console.outdent();
@@ -156,7 +160,9 @@ int main(int argc, char ** argv)
 		glfwSwapBuffers();
 	}
 
-	console.log("...finished loop, shutting down").indent();
+	console.outdent();
+	console.log("Finished loop, shutting down");
+	console.indent();
 	delete landscape;
 	delete awesome;
 	delete uihelper;

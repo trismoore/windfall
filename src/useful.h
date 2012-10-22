@@ -26,6 +26,10 @@ static inline void trim(std::string &s) { ltrim(s); rtrim(s); }
 #define clamp(a,b,c) ( ((a)<(b)) ? (b) : ((a)>(c) ? (c) : (a)) )
 #endif
 
+#ifndef SQ
+#define SQ(o) ((o)*(o))
+#endif
+
 static inline std::string substr(const std::string &str, int start, int length)
 {
   if (start  < 0 ) start+=str.length();

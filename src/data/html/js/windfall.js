@@ -154,6 +154,7 @@ $(document).ready(function() {
 
 	window.onEngineFinishedLoading = function() {
 		$('#loading').fadeOut();
+		if ('function' == typeof window.cameraGoToStartPosition) window.cameraGoToStartPosition();
 	}
 
 	// due to the nature of javascript asynchronisity, code here will be executed BEFORE modules have finished (and before static and autorun etc)

@@ -10,15 +10,23 @@
 float Camera::aspect = 4.f / 3.f;
 extern double gdT;
 
+#define TOP    0
+#define BOTTOM 1 // we don't at present use TOP+BOTTOM, it's just 2D culling
+#define LEFT   2
+#define RIGHT  3
+#define FAR    4
+#define NEAR   5 // NEAR must be 5 for sphereInDistance and getLOD to work.
+#define PLANE_TO_START_ON LEFT
+
 Camera::Camera(Awesome* awesome) : awesome(awesome)
 {
-	pos = glm::vec3(-0.1f,0.3f,-0.1);
+	pos = glm::vec3(0.1f,2.5f,0.1f);
 	lookDirection = glm::normalize(glm::vec3(0.5f,-0.1,0.5f));
 	lookUp = glm::normalize(glm::vec3(0.f,1.f,0.f));
-	
 	fov = 60;
 	nearP =    0.01;
-	farP =   200.0;
+	farP =   100.0;
+	nearFarDifferenceInv = 1.f/ (farP-nearP);
 
 	awesome->createObject(L"camera");
 	awesome->registerCallbackFunction( L"camera", L"setPos", Awesomium::JSDelegate(this, &Camera::JSsetPos));
@@ -44,44 +52,30 @@ void Camera::right(float dist) { pos += (glm::cross(lookDirection, lookUp) * dis
 
 void Camera::update()
 {
-	ProjectionMatrix = glm::perspective(fov, aspect, nearP, farP);
-
 	// slowly rotate back to upward = +Y
 	float ang;
-	//ang = glm::angle(lookUp, glm::vec3(0,1,0));
 	glm::vec3 lookRight = glm::cross(lookDirection, lookUp);
 	ang = lookRight[1];
 	roll(ang * 30 * gdT);
 
-//	glm::mat4 ViewTranslate = glm::translate(glm::mat4(1.0f), glm::vec3(pos));
-	ViewMatrix = glm::mat4(); // identity
+	// from wikipedia, horizon (km) is 3.57 * sqrt(height*1000) away.
+	farP = 3.57 * sqrtf((pos.y) * 1000);
+	nearP = 0.1;
+printf("h%.3f, farP%.3f\n", pos.y, farP);
 
-	/*// rotate Y then X then Z
-	lookDirection = glm::vec3(0.f,0.f,-1.f);
-	lookDirection = glm::rotateY(lookDirection, rotate.y);
-	lookDirection = glm::rotateX(lookDirection, rotate.x);
-	lookDirection = glm::rotateZ(lookDirection, rotate.z);
-		
-	lookUp = glm::vec3(0.f,1.f,0.f);
-	lookUp = glm::rotateY(lookUp, rotate.y);
-	lookUp = glm::rotateX(lookUp, rotate.x);
-	lookUp = glm::rotateZ(lookUp, rotate.z);
-*/
-	ViewMatrix = glm::lookAt(pos, lookDirection + pos, lookUp);
-/*
-	ViewMatrix = glm::rotate(ViewMatrix, rotate.y, glm::vec3(0.f,1.f,0.f));
-	ViewMatrix = glm::rotate(ViewMatrix, rotate.z, glm::vec3(0.f,0.f,1.f));
-	ViewMatrix = glm::rotate(ViewMatrix, rotate.x, glm::vec3(1.f,0.f,0.f));
-
-	ViewMatrix = glm::translate(ViewMatrix, pos);
+	ProjectionMatrix = glm::perspective(fov, aspect, nearP, farP);
 	
-	lookRight     = glm::vec3(ViewMatrix * glm::vec4(1,0,0,0));
-	lookDirection = glm::vec3(ViewMatrix * glm::vec4(0,0,-1,0));
-*/
+	lookDirection = normalize(lookDirection);
+	lookUp = normalize(lookUp);
+
+	ViewMatrix = glm::lookAt(pos, lookDirection + pos, lookUp);
+
 	VP = ProjectionMatrix * ViewMatrix;
 
+	// extract the frustum from the VP
+	extractFrustumFromMatrix(VP);
+
 //printf("p%.2f,%.2f,%.2f lD%.2f,%.2f,%.2f lU%.2f,%.2f,%.2f a%.3f\n",pos.x,pos.y,pos.z, lookDirection.x,lookDirection.y,lookDirection.z, lookUp.x,lookUp.y,lookUp.z, ang);
-//printf("p%.2f,%.2f,%.2f r%.2f,%.2f,%.2f lD%.2f,%.2f,%.2f\n",pos.x,pos.y,pos.z, rotate.x,rotate.y,rotate.z, lookDirection.x,lookDirection.y,lookDirection.z);
 
 	awesome->setObjectProperty(L"camera",L"posx",pos.x);
 	awesome->setObjectProperty(L"camera",L"posy",pos.y);
@@ -93,6 +87,92 @@ void Camera::update()
 	awesome->setObjectProperty(L"camera",L"upy",lookUp.y);
 	awesome->setObjectProperty(L"camera",L"upz",lookUp.z);
 	awesome->setObjectProperty(L"camera",L"fov",fov);
+}
+
+void normalizePlane(float * f) {
+	float t = 1.f / sqrtf(f[0]*f[0] + f[1]*f[1] + f[2]*f[2]);
+	f[0]*=t;
+	f[1]*=t;
+	f[2]*=t;
+	f[3]*=t;
+}
+
+void Camera::extractFrustumFromMatrix(const glm::mat4& mat)
+{
+	// Calculate the LEFT side
+	frustum[LEFT][0] = mat[0][3] + mat[0][0];
+	frustum[LEFT][1] = mat[1][3] + mat[1][0];
+	frustum[LEFT][2] = mat[2][3] + + mat[2][0];
+	frustum[LEFT][3] = mat[3][3] + + mat[3][0];
+
+	// Calculate the RIGHT side
+	frustum[RIGHT][0] = mat[0][3] - mat[0][0];
+	frustum[RIGHT][1] = mat[1][3] - mat[1][0];
+	frustum[RIGHT][2] = mat[2][3] - mat[2][0];
+	frustum[RIGHT][3] = mat[3][3] - mat[3][0];
+
+	// Calculate the TOP side
+	frustum[TOP][0] = mat[0][3] - mat[0][1];
+	frustum[TOP][1] = mat[1][3] - mat[1][1];
+	frustum[TOP][2] = mat[2][3] - mat[2][1];
+	frustum[TOP][3] = mat[3][3] - mat[3][1];
+
+	// Calculate the BOTTOM side
+	frustum[BOTTOM][0] = mat[0][3] + mat[0][1];
+	frustum[BOTTOM][1] = mat[1][3] + mat[1][1];
+	frustum[BOTTOM][2] = mat[2][3] + mat[2][1];
+	frustum[BOTTOM][3] = mat[3][3] + mat[3][1];
+
+	// Calculate the FRONT side
+	frustum[NEAR][0] = mat[0][3] + mat[0][2];
+	frustum[NEAR][1] = mat[1][3] + mat[1][2];
+	frustum[NEAR][2] = mat[2][3] + mat[2][2];
+	frustum[NEAR][3] = mat[3][3] + mat[3][2];
+
+	// Calculate the BACK side
+	frustum[FAR][0] = mat[0][3] - mat[0][2];
+	frustum[FAR][1] = mat[1][3] - mat[1][2];
+	frustum[FAR][2] = mat[2][3] - mat[2][2];
+	frustum[FAR][3] = mat[3][3] - mat[3][2];
+
+	for (int i=0; i<6; ++i)
+		normalizePlane(frustum[i]);
+}
+
+float Camera::sphereInFrustumDistance(const glm::vec3& centre, const float radius)
+{
+	// this relies on the fact that NEAR is the last plane, i.e. NEAR=5.
+	float d;
+	for (int i=PLANE_TO_START_ON; i<6; ++i) {
+		d = frustum[i][0]*centre.x + frustum[i][1]*centre.y + frustum[i][2]*centre.z + frustum[i][3];
+		if (d<= -radius) return -1;
+	}
+	return d + radius; 
+}
+
+// same as sphereInFrusumDistance, but scaled to 0..1 for near..far
+float Camera::getLOD(const glm::vec3& centre, const float radius)
+{
+	// this relies on the fact that NEAR is the last plane, i.e. NEAR=5.
+	float d;
+	for (int i=PLANE_TO_START_ON; i<6; ++i) {
+		d = frustum[i][0]*centre.x + frustum[i][1]*centre.y + frustum[i][2]*centre.z + frustum[i][3];
+		if (d<= -radius) return -1;
+	}
+	float r = clamp(((d + radius - nearP) * nearFarDifferenceInv), 0.f,1.f);
+//printf("%.3f,%.3f,%.3f+%.3f d=%.3f, nfdi=%.3f ret=%.3f\n",centre.x,centre.y,centre.z,radius, d,nearFarDifferenceInv, r);
+	return r;
+}
+
+bool Camera::isSphereVisible(const glm::vec3 & centre, const float radius) 
+{
+	for (int i=PLANE_TO_START_ON; i<6; ++i) {
+		if (frustum[i][0]*centre.x + 
+		    frustum[i][1]*centre.y + 
+                    frustum[i][2]*centre.z + 
+                    frustum[i][3]            <= -radius) return false;
+	}
+	return true;
 }
 
 void Camera::resize(const int w, const int h)

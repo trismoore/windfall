@@ -141,7 +141,12 @@ int GLFWCALL glfwCallbackWindowClose(void)
 void GLFWCALL glfwCallbackKey( int key, int action )
 {
 	// TODO: remove this...
-	if (key==GLFW_KEY_ESC) { console.error("ESC KEY pressed, quitting now"); OGL::quit(); }
+	if (key==GLFW_KEY_ESC) { 
+		if (!OGL::running) throw "Already trying to quit, going down hard!";
+		OGL::running=false;
+		console.error("ESC KEY pressed, quitting now"); 
+		OGL::quit();
+	}
 	Renderer::onKeyAll(key, action);
 }
 

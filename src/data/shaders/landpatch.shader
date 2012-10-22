@@ -14,19 +14,10 @@ vertex:
 	uniform float heightScale;
 
 	uniform vec2 textureScale; // 1 / (how many patches X and Z), to stretch the texture over all patches
-	uniform vec2 position;     // XZ for this
+	uniform vec2 position;     // XZ for this patch
 
 	float rand(vec2 co) {
  		return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-	}
-
-	vec3 getPos(vec2 location) {
-		vec4 tex = texture2D( heightsSampler, location);
-		return vec3(location.x /* + ((1-0.5*rand(location.xy))*tex.b/128) */ ,
-		            heightScale * 
-		             (tex.r                                         // r = ROCK
-			     +(1 - 0.5 * rand(location.xy)) * tex.b / 32 ), // b = BUMPINESS
-		            location.y /* + ((1-0.5*rand(location.xy))*tex.b/128) */ );
 	}
 
 	float getHeight(vec2 location) {

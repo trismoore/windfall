@@ -171,7 +171,6 @@ int main(int argc, char ** argv)
 	delete config;
 	ogl.closeWindow();
 	ogl.terminate();
-	console.outdent();
 
 	return 0;
 }

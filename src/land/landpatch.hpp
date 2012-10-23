@@ -31,13 +31,14 @@ friend class QTree;
 	static float textureScaleX,textureScaleZ,heightScale;
 
 	glm::vec3 centre;
+	float sizeX, sizeZ;
 
 public:
 
-	LandPatch(const float x, const float z);
+	LandPatch(const int x, const int z, const int sizeX, const int sizeZ);
 	~LandPatch();
 
-	void draw();
+	void draw(int lod);
 };
 
 #endif//LANDPATCH_HPP

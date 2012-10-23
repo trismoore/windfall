@@ -36,7 +36,7 @@ float Landscape::load()
 		case 1:
 			LandPatch::vbo = new VBO();
 
-			LandPatch::numberOfLODLevels = config->getInt("land.numberOfLODLevels", 8);
+			LandPatch::numberOfLODLevels = config->getInt("land.numberOfLODLevels", 4);
 			cC=config->getInt("land.columns",212), cR=config->getInt("land.rows",243);
 			C=cC,R=cR;
 
@@ -325,7 +325,7 @@ void Landscape::onMouseMove(int x, int y)
 void Landscape::render()
 {
 	// move camera around: WASD (**FIXME** probably won't be good on other key layouts)
-	double sens = 0.25;
+	double sens = 0.25 * max(0.1f,g_camera->pos.y); // speed depends on height
 	if (glfwGetKey('W')) g_camera->forward(gdT * sens);
 	if (glfwGetKey('S')) g_camera->backward(gdT * sens);
 	if (glfwGetKey('A')) g_camera->left(gdT * sens);

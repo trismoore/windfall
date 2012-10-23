@@ -44,11 +44,11 @@ QTree::QTree(int startX, int startZ, int endX, int endZ, int maxSize, int level)
 	sizeX = endX-startX, sizeZ = endZ-startZ;
 
 	int midX = startX + (sizeX+1) / 2; // round up
-	int midY = startZ + (sizeZ+1) / 2;
+	int midZ = startZ + (sizeZ+1) / 2;
 
 	// it is possible to just split in half, but it's probably more efficient to get to a square as soon as possible
 	midX = startX + nextPowerOfTwo(midX - startX);
-	midY = startZ + nextPowerOfTwo(midY - startZ);
+	midZ = startZ + nextPowerOfTwo(midZ - startZ);
 
 	bool splitHoriz=false, splitVert=false;
 	
@@ -60,10 +60,10 @@ QTree::QTree(int startX, int startZ, int endX, int endZ, int maxSize, int level)
 	landPatch=0;
 
 	if (splitHoriz && splitVert) {
-		children[0] = new QTree(startX, startZ, midX, midY, maxSize, level+1); // NW
-		children[1] = new QTree(  midX, startZ, endX, midY, maxSize, level+1); // NE
-		children[2] = new QTree(startX,   midY, midX, endZ, maxSize, level+1); // SW
-		children[3] = new QTree(  midX,   midY, endX, endZ, maxSize, level+1); // SE
+		children[0] = new QTree(startX, startZ, midX, midZ, maxSize, level+1); // NW
+		children[1] = new QTree(  midX, startZ, endX, midZ, maxSize, level+1); // NE
+		children[2] = new QTree(startX,   midZ, midX, endZ, maxSize, level+1); // SW
+		children[3] = new QTree(  midX,   midZ, endX, endZ, maxSize, level+1); // SE
 		boundingBoxMin = children[0]->boundingBoxMin;
 		boundingBoxMax = children[0]->boundingBoxMax;
 		for (int i=1; i<4; ++i) {
@@ -88,8 +88,8 @@ QTree::QTree(int startX, int startZ, int endX, int endZ, int maxSize, int level)
 			if (children[i]->boundingBoxMax.z > boundingBoxMax.z) boundingBoxMax.z = children[i]->boundingBoxMax.z;
 		}			
 	} else if (splitVert) {
-		children[0] = new QTree(startX, startZ, endX, midY, maxSize, level+1); // N
-		children[2] = new QTree(startX,   midY, endX, endZ, maxSize, level+1); // S
+		children[0] = new QTree(startX, startZ, endX, midZ, maxSize, level+1); // N
+		children[2] = new QTree(startX,   midZ, endX, endZ, maxSize, level+1); // S
 		boundingBoxMin = children[0]->boundingBoxMin;
 		boundingBoxMax = children[0]->boundingBoxMax;
 		int i=2; {
@@ -100,11 +100,18 @@ QTree::QTree(int startX, int startZ, int endX, int endZ, int maxSize, int level)
 			if (children[i]->boundingBoxMax.y > boundingBoxMax.y) boundingBoxMax.y = children[i]->boundingBoxMax.y;
 			if (children[i]->boundingBoxMax.z > boundingBoxMax.z) boundingBoxMax.z = children[i]->boundingBoxMax.z;
 		}			
-	} else {
+	}
+	else {
 //		console.debugf("%d,%d - %d,%d, %d", startX,startZ, endX,endZ, level);
-		landPatch = new LandPatch(startX, startZ);
+		landPatch = new LandPatch(startX, startZ, 1, 1);
 		boundingBoxMin = landPatch->boundingBoxMin;
 		boundingBoxMax = landPatch->boundingBoxMax;
+	}
+
+	// only 1x1 landpatches should calculate their bounding boxes, bigger qtrees should work it out from their children
+	// (calculating bounding boxes is *slow*, especially on big landscape texture sizes)
+	if (!landPatch) {
+		landPatch = new LandPatch(startX, startZ, endX-startX, endZ-startZ);
 	}
 
 	centre = 0.5f * (boundingBoxMin + boundingBoxMax);
@@ -131,32 +138,26 @@ void QTree::debugRender()
 	debugRenderRecurse();
 	glDepthFunc(GL_LESS);
 
-printf("QTree::rendered %d / %d\n", qTreeNumberVisible, qTreeNumberTotal);
+//printf("QTree::rendered %d / %d\n", qTreeNumberVisible, qTreeNumberTotal);
 }
 
 void QTree::debugRenderRecurse()
 {
 	if (!visible) return;
 
-	++qTreeNumberVisible;
-
-	if (landPatch)  // only display leaves
+	if (lod >= 0)
 	{
+//printf("%d;",lod);
+		++qTreeNumberVisible;
+
 		shader->set3f("bbMin", boundingBoxMin);
 		shader->set3f("bbMax", boundingBoxMax);
 
-		float distance = glm::distance(centre, g_camera->pos);
-		int l;
-		if (distance < 0.8) l=0;       // slightly favour close distances.  we're within this patch's sphere at 0.707 or there abouts
-		else if (distance < 1.2) l=1;
-		else l = min(LandPatch::numberOfLODLevels-1, int(distance*distance*1.4));
-
-		shader->set3f("colour",drawColours[l]);
+		shader->set3f("colour",drawColours[lod]);
 
 		vbo->drawElements(GL_LINES, 8*2, 0);
 	}
-
-//	if (level <= 4) // only draw first few levels
+	else // we didn't get drawn, draw the children instead.
 	{
 		for (int i=0; i<4; ++i)
 			if (children[i]) 
@@ -167,8 +168,13 @@ void QTree::debugRenderRecurse()
 void QTree::render()
 {
 	if (!visible) return;
-	if (landPatch) landPatch->draw();
-	else {
+
+	if (lod >= 0)
+	{
+		landPatch->draw(lod);
+	}
+	else
+	{
 		for (int i=0; i<4; ++i)
 			if (children[i])
 				children[i]->render();
@@ -177,13 +183,63 @@ void QTree::render()
 
 void QTree::calculateLOD(Camera* camera)
 {
+	calculateLODRecursive(camera);
+	// merge any branches that have the same LOD.
+//	mergeLODsRecursive();
+}
+
+void QTree::mergeLODsRecursive()
+{
+	if (!children[0]) return; // we are leaf node - our LOD is OK.
+
+	// merge children first
+	for (int i=0; i<4; ++i) if (children[i]) children[i]->mergeLODsRecursive();
+
+	// if all children that exist have the same LOD, then merge them into us.
+	lod = -1;
+	int childrenLODs = children[0]->lod; // children[0] guarenteed to exist
+	for (int i=1; i<4; ++i) {
+		if (children[i] && children[i]->lod < childrenLODs) return;
+	}
+	lod = childrenLODs;
+//	lod = childrenLODs-1; // merge 4 children together means our detail is increased
+//	if (lod<0) lod=0;
+//for (int l=0;l<level;++l) printf(" ");
+//printf("%.3f,%.3f,%.3fr%.3f vis%d dist%.3f lod%d c[0]%d\n",centre.x,centre.y,centre.z,radius, visible,distance,lod,children[0]->lod);
+}
+
+void QTree::calculateLODRecursive(Camera* camera)
+{
 	visible = camera->isSphereVisible(centre,radius);
-//	lod = camera->getLOD(centre, radius);
-//printf("%.3f,%.3f %.3f = %.3f\n", centre.x,centre.z, radius, lod);
+
+	// v2: start from the top and split when lod < 1
+	if (visible) {
+		distance = glm::distance(centre, camera->pos);
+		lod = int(sqrtf(distance / radius));
+		if (lod < 1) {
+			if (children[0]) {
+				lod = -1;
+				for (int i=0; i<4; ++i)
+					if (children[i])
+						children[i]->calculateLODRecursive(camera);
+			} else lod=0;
+		}
+	} else lod=-1;
+
+	// v1: assign lod, then merge equal lods into larger patches
+/*
 	if (visible) { //lod>=0) {
+		distance = glm::distance(centre, camera->pos);
+		lod = int(sqrtf(distance));
+		if (lod>=10) lod=9;
 		for (int i=0; i<4; ++i)
 			if (children[i])
-				children[i]->calculateLOD(camera);
+				children[i]->calculateLODRecursive(camera);
+	} else {
+		lod = -1;
 	}
+*/
+//for (int l=0;l<level;++l) printf(" ");
+//printf("%.3f,%.3f,%.3fr%.3f vis%d dist%.3f r%.3f d2/r%.3f lod%d\n",centre.x,centre.y,centre.z,radius, visible,distance,radius,distance*distance/radius,lod);
 }
 

@@ -13,7 +13,7 @@ protected:
 	~Object() {}
 public:
 
-	virtual void draw()=0;
+	virtual void draw(int lod)=0;
 };
 
 #endif//OBJECT_HPP

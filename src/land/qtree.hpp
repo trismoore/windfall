@@ -12,9 +12,9 @@ class QTree {
   QTree *children[4];
   LandPatch * landPatch;
 
-//  float lod; // 0=at near clip plane, 1=at far, <0 = not visible
   float distance;
   bool visible;
+  int lod; // 0=full detail
 
   int level; // 0==root
   int startX,startZ,endX,endZ,sizeX,sizeZ;
@@ -39,6 +39,8 @@ public:
   void calculateCentreAndRadius();
 
   void calculateLOD(Camera* camera);
+  void calculateLODRecursive(Camera* camera);
+  void mergeLODsRecursive();
 
   void debugRenderRecurse(); // the actual drawing
   void debugRender(); // draw cubes to show tree (setup then recurse)

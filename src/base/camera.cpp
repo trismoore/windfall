@@ -60,8 +60,8 @@ void Camera::update()
 
 	// from wikipedia, horizon (km) is 3.57 * sqrt(height*1000) away.
 	farP = 3.57 * sqrtf((pos.y) * 1000);
-	nearP = 0.1;
-printf("h%.3f, farP%.3f\n", pos.y, farP);
+	nearP = 0.0001 * farP;
+//printf("h%.3f, farP%.3f nearP%.3f\n", pos.y, farP, nearP);
 
 	ProjectionMatrix = glm::perspective(fov, aspect, nearP, farP);
 	

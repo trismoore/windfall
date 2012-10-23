@@ -85,6 +85,9 @@ var buttons = {
                Circ2: "moveCamera(+0.901,+1.055,+0.393, -0.686,-0.551,+0.475, -0.349,+0.904,+0.247,  76, 3000, 'easeInOutQuart');",
                Circ3: "moveCamera(+0.632,+1.076,+0.143, +0.059,-0.582,+0.811, +0.020,+0.887,+0.461,  76, 3000, 'easeInOutQuart');",
                Circ4: "moveCamera(-0.033,+0.874,+0.088, +0.811,-0.513,+0.281, +0.366,+0.922,+0.124,  76, 3000, 'easeInOutQuart');",
+             UKOgwen: "moveCamera(+0.524,+0.998,+0.679, -0.239,-0.540,-0.807, -0.032,+0.994,-0.106,  71, 3000, 'easeInOutQuart');",
+         UKGlenNevis: "moveCamera(+0.475,+0.805,+0.317, -0.988,-0.142,+0.068, +0.311,+0.950,-0.022,  18, 3000, 'easeInOutQuart');",
+          UKOverview: "moveCamera(+0.5,+1056.518,+0.493, +0.000,-1.000,+0.010, +0.000,+1.000,-0.020,  68, 1500, 'easeInOutQuart');",
 };
 function addButton(text, strToEval) {
 	$('<button class="k-button">'+text+'</button>').click(function(){eval(strToEval);}).appendTo('#cameraWindow');

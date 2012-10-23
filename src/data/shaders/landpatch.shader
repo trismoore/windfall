@@ -12,25 +12,32 @@ vertex:
 	uniform mat4 VP;
 	uniform sampler2D heightsSampler;
 	uniform float heightScale;
+	uniform sampler2D groundDetail;
 
 	uniform vec2 textureScale; // 1 / (how many patches X and Z), to stretch the texture over all patches
 	uniform vec2 position;     // XZ for this patch
+	uniform vec2 size;         // how large XZ this patch is
 
-	float rand(vec2 co) {
- 		return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+	float rough(vec2 location)
+	{
+		return 0.25 * (-2 +
+		  ( texture2D(groundDetail,location*17).b
+		  + texture2D(groundDetail,location*123).b
+		  + texture2D(groundDetail,location*432).b
+		  + texture2D(groundDetail,location*902).b )
+		  );
 	}
 
 	float getHeight(vec2 location) {
 		vec4 tex = texture2D( heightsSampler, location);
-		return heightScale * (tex.r + (1-0.5*rand(location)) * tex.b/32);
+		return heightScale * (tex.r + rough(location) * tex.b * 0.05);
 	}
 
 	void main() {
-		uv = (vertex + position) * textureScale;  // ([0..1] + [0..tiles-1]) * 1/tiles
-		vec3 pos;
-		pos.x = vertex.x + position.x;
-		pos.y = getHeight(uv);
-		pos.z = vertex.y + position.y;
+		uv = (vertex * size + position) * textureScale;  // ([0..1] + [0..tiles-1]) * 1/tiles
+		vec3 pos = vec3( vertex.x * size.x + position.x,
+		                       getHeight(uv),
+		                 vertex.y * size.y + position.y );
 
 		gl_Position = VP * vec4(pos,1); // object->world
 	}

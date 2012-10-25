@@ -181,7 +181,7 @@ GLint Shader::getUniformLocation(const std::string& name)
 		use();
 		GLuint l = glGetUniformLocation(program, name.c_str());
 		uniform_cache[name] = l;
-		console.logf("Program '%s' (%d) UniformLocation for %s: not cached %d", this->name.c_str(), program, name.c_str(), l);
+		console.logf("Program %02d '%s' UniformLocation for %s: not cached %d", program, this->name.c_str(), name.c_str(), l);
 		logOpenGLErrors();
 		return l;
 	}
@@ -198,7 +198,7 @@ GLint Shader::getAttribLocation(const std::string& name)
 		use();
 		GLuint l = glGetAttribLocation(program, name.c_str());
 		attribute_cache[name] = l;
-		console.logf("Program '%s' (%d) AttribLocation for %s: not cached %d", this->name.c_str(), program, name.c_str(), l);
+		console.logf("Program %02d '%s'  AttribLocation for %s: not cached %d", program, this->name.c_str(), name.c_str(), l);
 		logOpenGLErrors();
 		return l;
 	}

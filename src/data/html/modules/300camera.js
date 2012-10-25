@@ -8,6 +8,7 @@ cameraWindow.append('<div id="movement" style="display:none;"/>'); // used for a
 cameraWindow.append('<div id="cameraPos">Position</div>');
 cameraWindow.append('<div id="cameraLook">Look</div>');
 cameraWindow.append('<div id="cameraUp">Up</div>');
+cameraWindow.append('<div id="cameraPlanes">Near / Far</div>');
 //cameraWindow.append('<div id="cameraFOV">FOV</div>');
 var cameraFOVslider = $('<input id="cameraFOV" style="width:300px"/>');
 cameraWindow.append($('<div style="height:30px">FOV: </div>').append(cameraFOVslider));
@@ -43,6 +44,7 @@ UI.addMenu({text:"Camera"}, function() {
 		$('#cameraPos').html(sprintf("Position: <span>(%.3f,%.3f,%.3f)</span>", camera.posx, camera.posy, camera.posz));
 		$('#cameraLook').html(sprintf("Look: <span>(%.3f,%.3f,%.3f)</span>", camera.lookx, camera.looky, camera.lookz));
 		$('#cameraUp').html(sprintf("Up: <span>(%.3f,%.3f,%.3f)</span>", camera.upx, camera.upy, camera.upz));
+		$('#cameraPlanes').html(sprintf("Near %.3f / Far %.3f", camera.near, camera.far));
 //		$('#cameraFOV').html(sprintf("FOV: %.3f", camera.fov));
 		$('#cameraFOV').data('kendoSlider').value(camera.fov);
 	}, 1000/30 ); // 30fps
@@ -64,6 +66,7 @@ window.moveCamera = function(x,y,z, lookx,looky,lookz, upx,upy,upz, fov, duratio
 
   x*=landscape.numPatchesX; y*=landscape.heightScale; z*=landscape.numPatchesZ;
 
+  //console.log("Starting camera movement");
   $('#cameraWindow #movement')
 	.stop()
 	.css({left:"0px"})
@@ -73,7 +76,7 @@ window.moveCamera = function(x,y,z, lookx,looky,lookz, upx,upy,upz, fov, duratio
 		camera.setLook(camLX+(lookx-camLX)*t, camLY+(looky-camLY)*t, camLZ+(lookz-camLZ)*t );
 		camera.setUp(camUX+(upx-camUX)*t, camUY+(upy-camUY)*t, camUZ+(upz-camUZ)*t );
 		camera.setFOV( camFOV+(fov-camFOV)*t );
-	}});
+	}}); //},complete:function(){console.log("Camera movement complete");}});
 };
 
 var buttons = {

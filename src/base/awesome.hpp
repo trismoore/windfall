@@ -20,7 +20,7 @@ class Awesome : public Renderer, public Awesomium::WebViewListener, public Aweso
   int windowheight, windowwidth;
   GLuint texture, textureSampler;
   Shader * shader;
-  VBO * vbo;
+//  VBO * vbo;
 
   AwesomeDelegateMap delegateMap;
   std::string reloadString;

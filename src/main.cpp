@@ -1,6 +1,7 @@
 #include "console.hpp"
 #include "config.hpp"
 #include "ogl.hpp"
+#include "vbo.hpp"
 #include "awesome.hpp"
 #include "useful.h"
 #include "camera.hpp"
@@ -39,6 +40,8 @@ int main(int argc, char ** argv)
 	ogl.init();
 	ogl.openWindow(config);
 	console.outdent();
+
+	VBO::setupQuad();
 
 	Awesome * awesome = new Awesome(config);
 	awesome->loadFile(config->getString("UI.html", "html/ui.html"));

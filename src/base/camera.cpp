@@ -87,6 +87,8 @@ void Camera::update()
 	awesome->setObjectProperty(L"camera",L"upy",lookUp.y);
 	awesome->setObjectProperty(L"camera",L"upz",lookUp.z);
 	awesome->setObjectProperty(L"camera",L"fov",fov);
+	awesome->setObjectProperty(L"camera",L"far",farP);
+	awesome->setObjectProperty(L"camera",L"near",nearP);
 }
 
 void normalizePlane(float * f) {

@@ -3,3 +3,13 @@
 #
 #land.heightmap=land/uk.dds
 #debug=1
+
+# i roughly calculated (using google maps) that the UK map is 1130km wide.
+# ben nevis is 1344m tall (highest point)
+
+land.numPatchesX=1130
+land.numPatchesZ=1130
+land.heightScale=1.344
+land.heightmap=land/uk.tga
+//land.groundtexture=land/uktex.dds
+land.groundtexture=land/uk.tga

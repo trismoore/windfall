@@ -26,8 +26,10 @@ class VBO {
   static bool * VertexAttribArrayCurrent;
   static bool * VertexAttribArrayWanted;
   static int numVertexAttribs; //= glGet(GL_MAX_VERTEX_ATTRIBS)
+  static VBO * quad;
 public:
-
+  static void setupQuad();
+  static void drawQuad(Shader * shader);
   void bind(Shader* shader);
   void pushData(const std::string &n, const int numElementsPerVertex, const int numVertices, const GLfloat* d);
   void pushIndices(const int count, const GLuint* i);

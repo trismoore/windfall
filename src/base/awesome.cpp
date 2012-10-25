@@ -17,7 +17,7 @@ int Awesome::updatesLastSecond = 0;
 void Awesome::render()
 {
   webCore->update();
-  shader->use();
+//  shader->use();
   glDisable(GL_DEPTH_TEST);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -31,8 +31,9 @@ void Awesome::render()
                  m_buffer->width, m_buffer->height,
                  0,GL_BGRA,GL_UNSIGNED_BYTE,m_buffer->buffer);
   }
-  vbo->bind(shader);
-  vbo->drawArrays(GL_TRIANGLE_STRIP);
+//  vbo->bind(shader);
+//  vbo->drawArrays(GL_TRIANGLE_STRIP);
+  VBO::drawQuad(shader);
   logOpenGLErrors();
   glEnable(GL_DEPTH_TEST);
 }
@@ -72,14 +73,14 @@ Awesome::Awesome(Config* config)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   console.debugf("Texture -> %d", texture);
 
-  const GLfloat GVertices[] = {  -1, 1,  -1,-1,   1, 1,   1,-1 };
+/*  const GLfloat GVertices[] = {  -1, 1,  -1,-1,   1, 1,   1,-1 };
   const GLfloat GTextures[] = {   0, 0,   0, 1,   1, 0,   1, 1 };
 
   vbo = new VBO();
   vbo->pushData("vertexPos", 2, 4, GVertices);
   vbo->pushData("vertexUV", 2, 4, GTextures);
   vbo->create();
-
+*/
   shader = new Shader("awesome.shader");
   shader->seti("myTextureSampler",1); // we use unit 1
 //  textureSampler = shader->getUniformLocation("myTextureSampler");
@@ -121,7 +122,7 @@ Awesome::~Awesome()
   delete webCore;
   glDeleteTextures(1, &texture);
   delete shader;
-  delete vbo;
+//  delete vbo;
 }
 
 void Awesome::loadFile(std::string file)

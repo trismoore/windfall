@@ -30,7 +30,7 @@ vertex:
 
 	float getHeight(vec2 location) {
 		vec4 tex = texture2D( heightsSampler, location);
-		return heightScale * (tex.r + rough(location) * tex.b * 0.05);
+		return heightScale * (tex.r + rough(location) * tex.b * 0.15);
 	}
 
 	void main() {

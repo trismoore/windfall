@@ -7,8 +7,6 @@
 class Camera
 {
 	glm::vec3 rotate; // pitch,roll,yaw
-	float fov; // (horizontal)
-	float nearP, farP, nearFarDifferenceInv;
 
 	static float aspect;
 	Awesome* awesome;
@@ -17,6 +15,8 @@ class Camera
 	void extractFrustumFromMatrix(const glm::mat4& mat);
 
 public:
+	float fov; // (horizontal)
+	float nearP, farP, nearFarDifferenceInv;
 	glm::vec3 pos, lookDirection, lookUp;
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;

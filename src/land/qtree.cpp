@@ -212,18 +212,24 @@ void QTree::calculateLODRecursive(Camera* camera)
 {
 	visible = camera->isSphereVisible(centre,radius);
 
-	// v2: start from the top and split when lod < 1
+	// v2: start from the top and split when lod is small enough
 	if (visible) {
 		distance = glm::distance(centre, camera->pos);
-		lod = int(sqrtf(distance / radius));
-		if (lod < 1) {
+		lod = int(sqrtf( (distance / radius) ));
+		if (lod < LandPatch::numberOfLODLevels) {
 			if (children[0]) {
 				lod = -1;
 				for (int i=0; i<4; ++i)
 					if (children[i])
 						children[i]->calculateLODRecursive(camera);
-			} else lod=0;
+			}// else lod=0;
 		}
+/*
+		for (int l=0;l<level;++l)
+			printf(" ");
+		printf("%3.3f,%3.3f,%3.3fr%3.3f vis%d dist%3.3f r%3.3f lod%d lodf%3.3f\n",
+		        centre.x,centre.y,centre.z,radius, visible,distance,radius,lod,sqrtf( (distance / radius) ));
+*/
 	} else lod=-1;
 
 	// v1: assign lod, then merge equal lods into larger patches
@@ -240,6 +246,6 @@ void QTree::calculateLODRecursive(Camera* camera)
 	}
 */
 //for (int l=0;l<level;++l) printf(" ");
-//printf("%.3f,%.3f,%.3fr%.3f vis%d dist%.3f r%.3f d2/r%.3f lod%d\n",centre.x,centre.y,centre.z,radius, visible,distance,radius,distance*distance/radius,lod);
+//printf("%.3f,%.3f,%.3fr%.3f vis%d dist%.3f r%.3f lod%d\n",centre.x,centre.y,centre.z,radius, visible,distance,radius,lod);
 }
 

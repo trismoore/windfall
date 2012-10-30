@@ -3,7 +3,7 @@ vertex:
 	in vec3 vertex;
 
 	uniform mat4 VP;
-
+	
 	uniform vec3 bbMin, bbMax;
 
 	void main() {

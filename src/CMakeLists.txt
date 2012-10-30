@@ -79,6 +79,7 @@ ENDIF(NOT WIN32)
 set(MODULES
  base
  land
+ sky
  debugrenderer
  windfall
 )

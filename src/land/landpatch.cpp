@@ -25,6 +25,9 @@ LandPatch::LandPatch(const int x, const int z, const int sizeX, const int sizeZ)
 		float mn=999,mx=-999;
 		texHeights->getMinMaxRed(x*textureScaleX,z*textureScaleZ,(x+1)*textureScaleX,(z+1)*textureScaleZ,&mn,&mx);
 
+		mn *= heightScale;
+		mx *= heightScale;
+
 		position = glm::vec3(x,heightScale * (mx+mn)/2.f,z); // position is XZ origin, but average height (left,close,middle)
 		boundingBoxMin = glm::vec3(x,mn,z);
 		boundingBoxMax = glm::vec3(x+1,mx,z+1);
